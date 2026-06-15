@@ -3868,7 +3868,13 @@
     }
 
     document.querySelectorAll('.nav-btn').forEach(btn => {
-      btn.addEventListener('click', () => showTab(btn.dataset.tab));
+      btn.addEventListener('click', () => {
+        if (btn.dataset.tab === 'landing' && STATE.triageSession.chatLog.length > 0 && !STATE.triageSession.result) {
+          showTab('chat');
+        } else {
+          showTab(btn.dataset.tab);
+        }
+      });
     });
 
     /* ================================================================
@@ -4465,11 +4471,19 @@
     }
 
     function startTriage(initialSymptom, breathingContext = '') {
+      // If called with no symptom and chat is active, just show it
+      if (!initialSymptom && STATE.triageSession.chatLog.length > 0) {
+        showTab('chat');
+        return;
+      }
+
+      // Only reset if this is genuinely a new session
       STATE.triageSession = {
         symptom: initialSymptom, chatLog: [], step: 0,
         totalSteps: TRIAGE_QUESTIONS.length, category: 'عام',
         redFlagFired: false, result: null,
       };
+
       showTab('chat');
       document.getElementById('chatLog').innerHTML = '';
       document.getElementById('redFlagBanner').classList.remove('visible');
