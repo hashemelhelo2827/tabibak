@@ -645,7 +645,30 @@
     .chat-input-row input {
       flex-grow: 1;
     }
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
 
+    .suggestion-chip {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.4rem 0.9rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--primary);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--font-body);
+    }
+
+    .suggestion-chip:hover {
+      background: var(--primary-glow);
+      border-color: var(--primary);
+    }
     /* ============================================================
        BREATHING TEST SCREEN
        ============================================================ */
@@ -4371,6 +4394,30 @@
       STATE.triageSession.chatLog.push({ role, text });
     }
 
+    function showSuggestions(chips) {
+      const log = document.getElementById('chatLog');
+      const old = log.querySelector('.suggestions');
+      if (old) old.remove();
+
+      if (!chips || chips.length === 0) return;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'suggestions';
+      chips.forEach(label => {
+        const btn = document.createElement('button');
+        btn.className = 'suggestion-chip';
+        btn.textContent = label;
+        btn.addEventListener('click', () => {
+          wrap.remove();
+          document.getElementById('chatInput').value = label;
+          handleUserChatInput();
+        });
+        wrap.appendChild(btn);
+      });
+      log.appendChild(wrap);
+      log.scrollTop = log.scrollHeight;
+    }
+
     function showTypingThenAppend(text, delay = 900) {
       const log = document.getElementById('chatLog');
       const dots = document.createElement('div');
@@ -4397,13 +4444,33 @@
       }
     }
 
+    // function askNextQuestion() {
+    //   const step = STATE.triageSession.step;
+    //   if (step >= TRIAGE_QUESTIONS.length) { finishTriage(); return; }
+    //   const q = TRIAGE_QUESTIONS[step];
+    //   document.getElementById('categoryBadge').textContent = q.category;
+    //   updateProgress(step, TRIAGE_QUESTIONS.length);
+    //   showTypingThenAppend(q.q);
+    // }
+    // REPLACE the existing askNextQuestion with this:
     function askNextQuestion() {
-      const step = STATE.triageSession.step;
-      if (step >= TRIAGE_QUESTIONS.length) { finishTriage(); return; }
-      const q = TRIAGE_QUESTIONS[step];
-      document.getElementById('categoryBadge').textContent = q.category;
-      updateProgress(step, TRIAGE_QUESTIONS.length);
-      showTypingThenAppend(q.q);
+          const step = STATE.triageSession.step;
+          if (step >= TRIAGE_QUESTIONS.length) { finishTriage(); return; }
+          const q = TRIAGE_QUESTIONS[step];
+          document.getElementById('categoryBadge').textContent = q.category;
+          updateProgress(step, TRIAGE_QUESTIONS.length);
+
+          const SUGGESTIONS = [
+            ['منذ يومين', 'منذ أسبوع', 'منذ ساعات قليلة', 'أكثر من شهر'],      // step 0: duration
+            ['1 - 2', '3 - 5', '6 - 7', '8 - 10'],                              // step 1: severity  
+            ['لا يوجد', 'ضغط الدم', 'السكري', 'ربو', 'أدوية منتظمة'],           // step 2: history
+            ['نعم، وتعافيت', 'نعم، ولا زلت أعاني', 'لا، للمرة الأولى'],         // step 3: prior
+            ['لا توجد حساسية', 'حساسية من البنسلين', 'حساسية من الأسبرين'],      // step 4: allergy
+          ];
+
+          showTypingThenAppend(q.q).then(() => {
+            showSuggestions(SUGGESTIONS[step] || []);
+          });
     }
 
     function startTriage(initialSymptom, breathingContext = '') {
