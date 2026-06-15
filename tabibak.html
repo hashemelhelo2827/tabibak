@@ -33,6 +33,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
 
+  <!-- Socket.io client for real-time sync -->
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+
   <style>
     /* ============================================================
        DESIGN TOKENS — light & dark themes
@@ -2689,11 +2692,67 @@
     /* ================================================================
        STATE
        ================================================================ */
+    const API_BASE = window.location.origin;
+
+    function getToken() { return localStorage.getItem('tabibak_jwt'); }
+    function setToken(t) { localStorage.setItem('tabibak_jwt', t); }
+    function clearToken() { localStorage.removeItem('tabibak_jwt'); }
+
+    async function api(method, path, body) {
+      const opts = { method, headers: { 'Content-Type': 'application/json' } };
+      const token = getToken();
+      if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+      if (body !== undefined) opts.body = JSON.stringify(body);
+      const res = await fetch(API_BASE + path, opts);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    // Socket.io — real-time sync
+    let socket = null;
+
+    function connectSocket() {
+      if (socket?.connected) return;
+      socket = io(API_BASE, { transports: ['websocket', 'polling'] });
+
+      socket.on('connect', () => {
+        if (STATE.currentUser?.username) {
+          socket.emit('join', STATE.currentUser.username);
+        }
+      });
+
+      socket.on('medications:updated', () => {
+        if (STATE.currentUser) {
+          api('GET', '/api/medications').then(meds => { STATE.meds.list = meds; renderMedsScreen(); }).catch(() => {});
+        }
+      });
+
+      socket.on('medications:dose-logged', () => {
+        if (STATE.currentUser) {
+          api('GET', '/api/medications').then(meds => {
+            STATE.meds.list = meds;
+            loadLocalMedsTaken();
+            renderMedsScreen();
+          }).catch(() => {});
+        }
+      });
+
+      socket.on('sessions:created', () => {
+        if (STATE.currentUser) {
+          api('GET', '/api/sessions').then(s => { STATE.sessions = s; refreshHistoryScreen(); }).catch(() => {});
+        }
+      });
+    }
+
+    function disconnectSocket() {
+      if (socket) { socket.disconnect(); socket = null; }
+    }
+
     const STATE = {
       currentTab: 'landing',
       theme: 'light',
       currentUser: null,
-      users: {},
       sessions: [],
       triageSession: {
         symptom: '',
@@ -2733,30 +2792,32 @@
        ================================================================ */
     function saveStorage() {
       try {
-        localStorage.setItem('tabibak_users', JSON.stringify(STATE.users));
-        localStorage.setItem('tabibak_sessions', JSON.stringify(STATE.sessions));
-        localStorage.setItem('tabibak_meds', JSON.stringify(STATE.meds.list));
+        STATE.meds.taken = STATE.meds.taken || {};
         localStorage.setItem('tabibak_meds_taken', JSON.stringify({
           date: new Date().toDateString(),
           taken: STATE.meds.taken,
           streak: STATE.meds.streak,
           missed: STATE.meds.missedWeek,
         }));
-        if (STATE.currentUser)
-          localStorage.setItem('tabibak_loggedIn', STATE.currentUser.username);
       } catch (e) { }
     }
 
-    function loadStorage() {
+    async function loadProfile() {
+      const token = getToken();
+      if (!token) { STATE.currentUser = null; return; }
       try {
-        const u = localStorage.getItem('tabibak_users');
-        const s = localStorage.getItem('tabibak_sessions');
-        const m = localStorage.getItem('tabibak_meds');
+        STATE.currentUser = await api('GET', '/api/auth/profile');
+        STATE.sessions = await api('GET', '/api/sessions');
+        try { STATE.meds.list = await api('GET', '/api/medications'); } catch (e) { STATE.meds.list = []; }
+      } catch (e) {
+        clearToken();
+        STATE.currentUser = null;
+      }
+    }
+
+    function loadLocalMedsTaken() {
+      try {
         const mt = localStorage.getItem('tabibak_meds_taken');
-        const li = localStorage.getItem('tabibak_loggedIn');
-        if (u) STATE.users = JSON.parse(u);
-        if (s) STATE.sessions = JSON.parse(s);
-        if (m) STATE.meds.list = JSON.parse(m);
         if (mt) {
           const parsed = JSON.parse(mt);
           if (parsed.date === new Date().toDateString()) {
@@ -2765,7 +2826,6 @@
             STATE.meds.missedWeek = parsed.missed || 0;
           }
         }
-        if (li && STATE.users[li]) STATE.currentUser = STATE.users[li];
       } catch (e) { }
     }
 
@@ -2908,7 +2968,7 @@
     }
 
     function renderMedsScreen() {
-      if (STATE.meds.list.length === 0) {
+      if (STATE.meds.list.length === 0 && !STATE.currentUser) {
         STATE.meds.list = JSON.parse(JSON.stringify(DEFAULT_MEDS));
         STATE.meds.taken['1_0'] = true; // demo: first dose of Metformin
       }
@@ -3002,13 +3062,18 @@
 
       // Bind check buttons
       container.querySelectorAll('.med-check-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
+        btn.addEventListener('click', async e => {
           e.stopPropagation();
           const key = btn.dataset.key;
+          const [medId, doseIdx] = key.split('_');
+          const date = new Date().toISOString().slice(0, 10);
           if (STATE.meds.taken[key]) {
             delete STATE.meds.taken[key];
           } else {
             STATE.meds.taken[key] = true;
+            if (STATE.currentUser) {
+              try { await api('POST', '/api/medications/log', { medicationId: medId, doseIdx: parseInt(doseIdx), date }); } catch (e) {}
+            }
           }
           saveStorage();
           renderMedsScreen();
@@ -3017,13 +3082,16 @@
 
       // Delete buttons
       container.querySelectorAll('.med-delete-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
+        btn.addEventListener('click', async e => {
           e.stopPropagation();
-          const id = parseInt(btn.dataset.id);
+          const id = btn.dataset.id;
           if (confirm('Remove this medication from your list?')) {
-            STATE.meds.list = STATE.meds.list.filter(m => m.id !== id);
+            if (STATE.currentUser) {
+              try { await api('DELETE', '/api/medications/' + id); } catch (e) {}
+            }
+            STATE.meds.list = STATE.meds.list.filter(m => String(m.id) !== id);
             Object.keys(STATE.meds.taken).forEach(k => {
-              if (k.startsWith(`${id}_`)) delete STATE.meds.taken[k];
+              if (k.startsWith(id + '_')) delete STATE.meds.taken[k];
             });
             saveStorage();
             renderMedsScreen();
@@ -3177,7 +3245,7 @@
 
       const idx = STATE.meds.list.length % PILL_ICONS.length;
       const newMed = {
-        id: Date.now(),
+        id: String(Date.now()),
         name,
         dose: dose || '—',
         form,
@@ -3190,19 +3258,11 @@
         color: PILL_COLORS[idx],
       };
 
+      if (STATE.currentUser) {
+        try { await api('POST', '/api/medications', newMed); } catch (e) { alert('Failed to save medication'); return; }
+      }
       STATE.meds.list.push(newMed);
       saveStorage();
-
-      // DATABASE REQUIRED
-      // Store medication reminder schedule
-      // Persist the medication list changes to the backend database:
-      // HTTP POST /api/medications { user: username, medication: newMed }
-      // This allows the scheduled backend process to know when reminders should be sent.
-
-      // CRON JOBS / SCHEDULED TASKS
-      // The backend will run a cron schedule (e.g. every minute) to query this medication schedule,
-      // match it against the current time, and send FCM notifications.
-
       document.getElementById('medsModalOverlay').classList.remove('open');
       renderMedsScreen();
     });
@@ -3234,7 +3294,7 @@
         enableBtn.style.display = 'none';
         testBtn.style.display = 'inline-block';
         
-        const fcmToken = STATE.currentUser?.fcmToken || localStorage.getItem('tabibak_fcm_token') || 'fcm-mock-token-tabibak-12345';
+        const fcmToken = STATE.currentUser?.fcmToken || localStorage.getItem('tabibak_fcm_token') || '';
         tokenInput.value = fcmToken;
       } else if (Notification.permission === 'denied') {
         statusText.textContent = '🔴 Blocked (Permission Denied)';
@@ -3300,13 +3360,7 @@
           // Store token in current user state and local storage
           if (STATE.currentUser) {
             STATE.currentUser.fcmToken = token;
-            
-            // DATABASE REQUIRED
-            // Store FCM token here
-            // Update the user's document/record in the database to link their profile to this FCM token
-            // HTTP POST /api/notifications/store-token { username: STATE.currentUser.username, fcmToken: token }
-            STATE.users[STATE.currentUser.username].fcmToken = token;
-            saveStorage();
+            try { await api('POST', '/api/notifications/store-token', { fcmToken: token }); } catch (e) {}
           }
           localStorage.setItem('tabibak_fcm_token', token);
 
@@ -3565,20 +3619,31 @@
       showTab('results');
     }
 
-    function saveSession() {
+    async function saveSession() {
       if (!STATE.currentUser) return;
       const r = STATE.triageSession.result;
-      STATE.sessions.unshift({
-        username: STATE.currentUser.username,
-        date: new Date().toISOString(),
-        symptom: STATE.triageSession.symptom,
-        chatLog: STATE.triageSession.chatLog,
-        level: r.level,
-        condition: r.condition,
-        desc: r.desc,
-        recs: r.recs,
-      });
-      saveStorage();
+      const session = {
+        type: 'triage',
+        result: JSON.stringify({
+          symptom: STATE.triageSession.symptom,
+          chatLog: STATE.triageSession.chatLog,
+          level: r.level,
+          condition: r.condition,
+          desc: r.desc,
+          recs: r.recs,
+        }),
+        details: STATE.triageSession.symptom,
+      };
+      try {
+        const saved = await api('POST', '/api/sessions', session);
+        STATE.sessions.unshift(saved);
+      } catch (e) {
+        STATE.sessions.unshift({
+          id: Date.now(),
+          ...session,
+          createdAt: new Date().toISOString(),
+        });
+      }
     }
 
     document.getElementById('startTriageBtn').addEventListener('click', () => {
@@ -3980,33 +4045,29 @@
       });
     });
 
-    document.getElementById('loginForm').addEventListener('submit', e => {
+    document.getElementById('loginForm').addEventListener('submit', async e => {
       e.preventDefault();
       const u = document.getElementById('loginUser').value.trim();
       const p = document.getElementById('loginPass').value;
 
-      // Validation
-      if (!u) {
-        alert('يرجى إدخال اسم المستخدم.');
-        return;
-      }
-      if (!p) {
-        alert('يرجى إدخال كلمة المرور.');
-        return;
-      }
+      if (!u) { alert('يرجى إدخال اسم المستخدم.'); return; }
+      if (!p) { alert('يرجى إدخال كلمة المرور.'); return; }
 
-      const user = STATE.users[u];
-      if (!user || user.password !== p) {
+      try {
+        const data = await api('POST', '/api/auth/login', { username: u, password: p });
+        setToken(data.token);
+        STATE.currentUser = data;
+        STATE.sessions = await api('GET', '/api/sessions');
+        try { STATE.meds.list = await api('GET', '/api/medications'); } catch (e) { STATE.meds.list = []; }
+        connectSocket();
+        refreshProfileScreen();
+        showTab('profile');
+      } catch (err) {
         alert('اسم المستخدم أو كلمة المرور غير صحيحة.');
-        return;
       }
-      STATE.currentUser = user;
-      saveStorage();
-      refreshProfileScreen();
-      showTab('profile');
     });
 
-    document.getElementById('registerForm').addEventListener('submit', e => {
+    document.getElementById('registerForm').addEventListener('submit', async e => {
       e.preventDefault();
       const u = document.getElementById('regUser').value.trim();
       const p = document.getElementById('regPass').value;
@@ -4016,13 +4077,10 @@
       const mob = document.getElementById('regMobile').value.trim();
       const h = document.getElementById('regHistory').value.trim();
 
-      // Required fields check
       if (!u || !p || !n || !a || !g || !mob) {
         alert('يرجى ملء جميع الحقول المطلوبة بما في ذلك رقم الموبايل.');
         return;
       }
-
-      // Strict Validations
       if (u.length < 4) {
         alert('يجب أن يتكون اسم المستخدم من 4 أحرف على الأقل.');
         return;
@@ -4041,23 +4099,16 @@
         alert('يرجى إدخال رقم هاتف محمول صحيح (يتكون من 10 إلى 15 رقماً).');
         return;
       }
-      if (STATE.users[u]) {
-        alert('اسم المستخدم هذا مستخدم بالفعل. يرجى اختيار اسم مستخدم آخر.');
-        return;
+
+      try {
+        const data = await api('POST', '/api/auth/register', { username: u, password: p, name: n, age: a, gender: g, mobile: mob, history: h });
+        setToken(data.token);
+        STATE.currentUser = data;
+        connectSocket();
+        showNotificationModal();
+      } catch (err) {
+        alert(err.message || 'فشل التسجيل. يرجى المحاولة مرة أخرى.');
       }
-
-      const user = { username: u, password: p, name: n, age: a, gender: g, mobile: mob, history: h };
-      
-      // DATABASE REQUIRED
-      // Store user registration details in backend database
-      // HTTP POST /api/auth/register { username: u, password: p, name: n, ... }
-      
-      STATE.users[u] = user;
-      STATE.currentUser = user;
-      saveStorage();
-
-      // Show FCM push notification linking modal
-      showNotificationModal();
     });
 
     /* ================================================================
@@ -4087,16 +4138,21 @@
 
     document.getElementById('logoutBtn').addEventListener('click', () => {
       STATE.currentUser = null;
-      localStorage.removeItem('tabibak_loggedIn');
+      clearToken();
+      STATE.sessions = [];
+      STATE.meds.list = [];
+      STATE.meds.taken = {};
+      disconnectSocket();
       refreshProfileScreen();
       refreshHistoryScreen();
     });
 
     document.getElementById('editProfileBtn').addEventListener('click', () => {
       const u = STATE.currentUser;
-      document.getElementById('editName').value = u.name;
-      document.getElementById('editAge').value = u.age;
-      document.getElementById('editGender').value = u.gender;
+      if (!u) return;
+      document.getElementById('editName').value = u.name || '';
+      document.getElementById('editAge').value = u.age || '';
+      document.getElementById('editGender').value = u.gender || '';
       document.getElementById('editMobile').value = u.mobile || '';
       document.getElementById('editHistory').value = u.history || '';
       document.getElementById('editProfileForm').style.display = '';
@@ -4106,7 +4162,7 @@
       document.getElementById('editProfileForm').style.display = 'none';
     });
 
-    document.getElementById('editProfileForm').addEventListener('submit', e => {
+    document.getElementById('editProfileForm').addEventListener('submit', async e => {
       e.preventDefault();
       const u = STATE.currentUser;
       const nameVal = document.getElementById('editName').value.trim();
@@ -4115,13 +4171,10 @@
       const mobileVal = document.getElementById('editMobile').value.trim();
       const historyVal = document.getElementById('editHistory').value.trim();
 
-      // Required fields validation
       if (!nameVal || !ageVal || !genderVal || !mobileVal) {
         alert('يرجى ملء جميع الحقول المطلوبة.');
         return;
       }
-
-      // Input Validation
       const ageNum = parseInt(ageVal, 10);
       if (isNaN(ageNum) || ageNum < 1 || ageNum > 120) {
         alert('يرجى إدخال عمر صحيح يتراوح بين 1 و 120 عاماً.');
@@ -4133,20 +4186,14 @@
         return;
       }
 
-      u.name = nameVal;
-      u.age = ageVal;
-      u.gender = genderVal;
-      u.mobile = mobileVal;
-      u.history = historyVal;
-      
-      // DATABASE REQUIRED
-      // Store updated user details in database
-      // HTTP PUT /api/users/profile { name, age, gender, mobile, history }
-      
-      STATE.users[u.username] = u;
-      saveStorage();
-      document.getElementById('editProfileForm').style.display = 'none';
-      refreshProfileScreen();
+      try {
+        await api('PUT', '/api/auth/profile', { name: nameVal, age: ageVal, gender: genderVal, mobile: mobileVal, history: historyVal });
+        STATE.currentUser = await api('GET', '/api/auth/profile');
+        document.getElementById('editProfileForm').style.display = 'none';
+        refreshProfileScreen();
+      } catch (err) {
+        alert('فشل تحديث الملف الشخصي.');
+      }
     });
 
     function refreshProfileScreen() {
@@ -4155,10 +4202,10 @@
       document.getElementById('profileContainer').style.display = loggedIn ? '' : 'none';
       if (loggedIn) {
         const u = STATE.currentUser;
-        document.getElementById('profileName').textContent = u.name;
-        document.getElementById('profileUsername').textContent = `@${u.username}`;
-        document.getElementById('profileAge').textContent = u.age;
-        document.getElementById('profileGender').textContent = u.gender;
+        document.getElementById('profileName').textContent = u.name || '';
+        document.getElementById('profileUsername').textContent = u.username ? '@' + u.username : '';
+        document.getElementById('profileAge').textContent = u.age || '';
+        document.getElementById('profileGender').textContent = u.gender || '';
         document.getElementById('profileMobile').textContent = u.mobile || 'Not set';
         document.getElementById('profileHistory').textContent = u.history || 'No medical background declared.';
       }
@@ -4170,13 +4217,23 @@
     document.getElementById('historyAuthBtn').addEventListener('click', () => showTab('profile'));
     document.getElementById('historyStartBtn').addEventListener('click', () => showTab('landing'));
 
+    function parseSession(s) {
+      if (s.result && typeof s.result === 'string') {
+        try {
+          const r = JSON.parse(s.result);
+          return { ...s, date: s.createdAt, ...r, username: s.username || STATE.currentUser?.username };
+        } catch (e) { return s; }
+      }
+      return s;
+    }
+
     function refreshHistoryScreen() {
       const loggedIn = !!STATE.currentUser;
       document.getElementById('historyLoggedOut').style.display = loggedIn ? 'none' : '';
       document.getElementById('historyLoggedIn').style.display = loggedIn ? '' : 'none';
       if (!loggedIn) return;
 
-      const mySessions = STATE.sessions.filter(s => s.username === STATE.currentUser.username);
+      const mySessions = STATE.sessions.map(parseSession);
       const list = document.getElementById('historyList');
       const empty = document.getElementById('historyEmpty');
 
@@ -4188,13 +4245,14 @@
 
       empty.style.display = 'none';
       list.innerHTML = mySessions.map((s, i) => {
-        const date = new Date(s.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const date = new Date(s.date || s.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        const level = s.level || 'green';
         return `
-        <div class="history-card ${s.level}" data-index="${i}">
+        <div class="history-card ${level}" data-index="${i}">
           <div class="hc-info">
-            <span class="hc-title">${s.condition}</span>
-            <span class="hc-meta">${date} · <span style="text-transform:capitalize;">${s.level}</span> urgency</span>
-            <span class="hc-symptom">${s.symptom}</span>
+            <span class="hc-title">${s.condition || s.details || 'Assessment'}</span>
+            <span class="hc-meta">${date} · <span style="text-transform:capitalize;">${level}</span> urgency</span>
+            <span class="hc-symptom">${s.symptom || s.details || ''}</span>
           </div>
           <div class="hc-actions">
             <button class="icon-btn view-btn" data-index="${i}" title="View session">
@@ -4223,35 +4281,42 @@
       });
     }
 
-    function deleteSession(localIdx) {
-      const mySessions = STATE.sessions.filter(s => s.username === STATE.currentUser.username);
-      const globalIdx = STATE.sessions.indexOf(mySessions[localIdx]);
-      if (globalIdx >= 0) { STATE.sessions.splice(globalIdx, 1); saveStorage(); }
+    async function deleteSession(localIdx) {
+      const mySessions = STATE.sessions.map(parseSession);
+      const s = mySessions[localIdx];
+      if (!s) return;
+      if (s.id && STATE.currentUser) {
+        try { await api('DELETE', '/api/sessions/' + s.id); } catch (e) {}
+      }
+      STATE.sessions = STATE.sessions.filter(ses => ses.id !== s.id);
       refreshHistoryScreen();
     }
 
     function openHistoryModal(localIdx) {
-      const mySessions = STATE.sessions.filter(s => s.username === STATE.currentUser.username);
+      const mySessions = STATE.sessions.map(parseSession);
       const s = mySessions[localIdx];
       STATE.modalSessionIndex = localIdx;
 
-      const date = new Date(s.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+      const level = s.level || 'green';
+      const date = new Date(s.date || s.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
 
       const badge = document.getElementById('modalUrgency');
-      badge.textContent = s.level === 'red' ? '🚨 Emergency' : s.level === 'orange' ? '⚠️ Moderate' : '✅ Mild';
-      badge.style.background = s.level === 'red' ? 'var(--red)' : s.level === 'orange' ? 'var(--orange)' : 'var(--green)';
+      badge.textContent = level === 'red' ? '🚨 Emergency' : level === 'orange' ? '⚠️ Moderate' : '✅ Mild';
+      badge.style.background = level === 'red' ? 'var(--red)' : level === 'orange' ? 'var(--orange)' : 'var(--green)';
       badge.style.color = '#fff';
 
-      document.getElementById('modalTitle').textContent = s.condition;
+      document.getElementById('modalTitle').textContent = s.condition || 'Assessment';
       document.getElementById('modalMeta').textContent = `Saved on ${date}`;
-      document.getElementById('modalSymptom').textContent = s.symptom;
-      document.getElementById('modalDesc').textContent = s.desc;
+      document.getElementById('modalSymptom').textContent = s.symptom || '';
+      document.getElementById('modalDesc').textContent = s.desc || '';
 
-      document.getElementById('modalTranscript').innerHTML = s.chatLog.map(m =>
+      const chatLog = s.chatLog || [];
+      document.getElementById('modalTranscript').innerHTML = chatLog.map(m =>
         `<div class="msg ${m.role === 'bot' ? 'msg-bot' : 'msg-user'}">${m.text}</div>`
       ).join('');
 
-      document.getElementById('modalRecs').innerHTML = s.recs.map(r => `<li>${r}</li>`).join('');
+      const recs = s.recs || [];
+      document.getElementById('modalRecs').innerHTML = recs.map(r => `<li>${r}</li>`).join('');
 
       document.getElementById('historyModal').classList.add('open');
     }
@@ -4273,10 +4338,11 @@
     });
 
     document.getElementById('modalCopyBtn').addEventListener('click', () => {
-      const mySessions = STATE.sessions.filter(s => s.username === STATE.currentUser?.username);
+      const mySessions = STATE.sessions.map(parseSession);
       const s = mySessions[STATE.modalSessionIndex];
       if (!s) return;
-      const text = `=== TABIBAK TRIAGE REPORT ===\n\nSymptom: ${s.symptom}\nUrgency: ${s.level.toUpperCase()}\nCondition: ${s.condition}\n\nAssessment:\n${s.desc}\n\nRecommendations:\n${s.recs.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\nGenerated: ${new Date(s.date).toLocaleString()}\n\n⚠️ AI-generated — not a clinical diagnosis.`;
+      const level = s.level || 'green';
+      const text = `=== TABIBAK TRIAGE REPORT ===\n\nSymptom: ${s.symptom || ''}\nUrgency: ${level.toUpperCase()}\nCondition: ${s.condition || 'Assessment'}\n\nAssessment:\n${s.desc || ''}\n\nRecommendations:\n${(s.recs || []).map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\nGenerated: ${new Date(s.date || s.createdAt).toLocaleString()}\n\n⚠️ AI-generated — not a clinical diagnosis.`;
       navigator.clipboard.writeText(text).catch(() => { });
       document.getElementById('modalCopyBtn').textContent = '✓ Copied!';
       setTimeout(() => document.getElementById('modalCopyBtn').textContent = 'Copy Report', 2000);
@@ -4285,9 +4351,14 @@
     /* ================================================================
        INIT
        ================================================================ */
-    loadStorage();
-    refreshProfileScreen();
-    refreshHistoryScreen();
+    loadLocalMedsTaken();
+
+    (async () => {
+      await loadProfile();
+      refreshProfileScreen();
+      refreshHistoryScreen();
+      if (STATE.meds.list.length === 0) renderMedsScreen();
+    })();
 
     // Initialize dose slots in modal on first render
     renderDoseSlots(1);

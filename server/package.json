@@ -1,0 +1,20 @@
+{
+  "name": "tabibak-server",
+  "version": "1.0.0",
+  "description": "Tabibak backend API server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "setup-db": "turso db create tabibak && turso db show tabibak --url && turso db create-token tabibak"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.14.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "socket.io": "^4.8.1"
+  }
+}
