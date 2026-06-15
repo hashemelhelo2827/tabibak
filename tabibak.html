@@ -3868,7 +3868,13 @@
     }
 
     document.querySelectorAll('.nav-btn').forEach(btn => {
-      btn.addEventListener('click', () => showTab(btn.dataset.tab));
+      btn.addEventListener('click', () => {
+        if (btn.dataset.tab === 'landing' && STATE.triageSession.chatLog.length > 0 && !STATE.triageSession.result) {
+          showTab('chat');
+        } else {
+          showTab(btn.dataset.tab);
+        }
+      });
     });
 
     /* ================================================================
@@ -4474,24 +4480,32 @@
     }
 
     function startTriage(initialSymptom, breathingContext = '') {
-      STATE.triageSession = {
-        symptom: initialSymptom, chatLog: [], step: 0,
-        totalSteps: TRIAGE_QUESTIONS.length, category: 'عام',
-        redFlagFired: false, result: null,
-      };
-      showTab('chat');
-      document.getElementById('chatLog').innerHTML = '';
-      document.getElementById('redFlagBanner').classList.remove('visible');
-      updateProgress(0, TRIAGE_QUESTIONS.length);
+        // If called with no symptom and chat is active, just show it
+        if (!initialSymptom && STATE.triageSession.chatLog.length > 0) {
+          showTab('chat');
+          return;
+        }
 
-      const intro = breathingContext
-        ? `مرحباً! أنا طبيبك. بناءً على نتيجة تقييم التنفس (${breathingContext})، وعَرَضك المُبلَّغ عنه "${initialSymptom}" — سأطرح عليك بعض الأسئلة لفهم حالتك بشكل أفضل.`
-        : `مرحباً! أنا طبيبك. لاحظتُ عَرَضك: "${initialSymptom}". سأطرح عليك ${TRIAGE_QUESTIONS.length} أسئلة سريعة لفهم حالتك بشكل أفضل.`;
+        // Only reset if this is a new session
+        STATE.triageSession = {
+          symptom: initialSymptom, chatLog: [], step: 0,
+          totalSteps: TRIAGE_QUESTIONS.length, category: 'عام',
+          redFlagFired: false, result: null,
+        };
 
-      appendMessage('bot', intro);
-      checkRedFlags(initialSymptom);
-      setTimeout(askNextQuestion, 600);
-    }
+        showTab('chat');
+        document.getElementById('chatLog').innerHTML = '';
+        document.getElementById('redFlagBanner').classList.remove('visible');
+        updateProgress(0, TRIAGE_QUESTIONS.length);
+
+        const intro = breathingContext
+          ? `مرحباً! أنا طبيبك. بناءً على نتيجة تقييم التنفس (${breathingContext})، وعَرَضك المُبلَّغ عنه "${initialSymptom}" — سأطرح عليك بعض الأسئلة لفهم حالتك بشكل أفضل.`
+          : `مرحباً! أنا طبيبك. لاحظتُ عَرَضك: "${initialSymptom}". سأطرح عليك ${TRIAGE_QUESTIONS.length} أسئلة سريعة لفهم حالتك بشكل أفضل.`;
+
+        appendMessage('bot', intro);
+        checkRedFlags(initialSymptom);
+        setTimeout(askNextQuestion, 600);
+      }
 
     function handleUserChatInput() {
       const input = document.getElementById('chatInput');
