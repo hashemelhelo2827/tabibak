@@ -4556,9 +4556,19 @@
       startTriage(sym);
     });
 
+    document.getElementById('symptomInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('startTriageBtn').click();
+      }
+    });
+
     document.getElementById('sendBtn').addEventListener('click', handleUserChatInput);
     document.getElementById('chatInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') handleUserChatInput();
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleUserChatInput();
+      }
     });
 
     document.getElementById('restartBtn').addEventListener('click', () => {
