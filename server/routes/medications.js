@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   try {
-    const db = getDb();
+    const db = await getDb();
     const medsResult = await db.execute({
       sql: 'SELECT * FROM medications WHERE username = ? ORDER BY createdAt DESC',
       args: [req.user.username],
@@ -33,7 +33,7 @@ router.post('/', async (req, res) => {
     if (!name || !dose) {
       return res.status(400).json({ error: 'Name and dose are required' });
     }
-    const db = getDb();
+    const db = await getDb();
     const medId = id || String(Date.now());
     await db.execute({
       sql: 'INSERT OR REPLACE INTO medications (id, username, name, dose, form, food, urgent, note, icon, color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -64,7 +64,7 @@ router.post('/', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const db = getDb();
+    const db = await getDb();
     const med = await db.execute({
       sql: 'SELECT * FROM medications WHERE id = ? AND username = ?',
       args: [req.params.id, req.user.username],
@@ -88,7 +88,7 @@ router.post('/log', async (req, res) => {
     if (!medicationId || doseIdx === undefined || !date) {
       return res.status(400).json({ error: 'medicationId, doseIdx, and date are required' });
     }
-    const db = getDb();
+    const db = await getDb();
     const existing = await db.execute({
       sql: 'SELECT id FROM medication_log WHERE username = ? AND medicationId = ? AND doseIdx = ? AND date = ?',
       args: [req.user.username, medicationId, doseIdx, date],
@@ -111,7 +111,7 @@ router.post('/log', async (req, res) => {
 
 router.get('/log/:date', async (req, res) => {
   try {
-    const db = getDb();
+    const db = await getDb();
     const logs = await db.execute({
       sql: 'SELECT * FROM medication_log WHERE username = ? AND date = ?',
       args: [req.user.username, req.params.date],

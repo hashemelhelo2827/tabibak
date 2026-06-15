@@ -11,7 +11,7 @@ router.post('/register', async (req, res) => {
     if (!username || !password || !name) {
       return res.status(400).json({ error: 'Username, password, and name are required' });
     }
-    const db = getDb();
+    const db = await getDb();
     const existing = await db.execute({ sql: 'SELECT username FROM users WHERE username = ?', args: [username] });
     if (existing.rows.length > 0) {
       return res.status(409).json({ error: 'Username already exists' });
@@ -35,7 +35,7 @@ router.post('/login', async (req, res) => {
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required' });
     }
-    const db = getDb();
+    const db = await getDb();
     const result = await db.execute({ sql: 'SELECT * FROM users WHERE username = ?', args: [username] });
     const user = result.rows[0];
     if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
@@ -52,7 +52,7 @@ router.post('/login', async (req, res) => {
 
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
-    const db = getDb();
+    const db = await getDb();
     const result = await db.execute({ sql: 'SELECT * FROM users WHERE username = ?', args: [req.user.username] });
     const user = result.rows[0];
     if (!user) {
@@ -69,7 +69,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
 router.put('/profile', authenticateToken, async (req, res) => {
   try {
     const { name, age, gender, mobile, history } = req.body;
-    const db = getDb();
+    const db = await getDb();
     await db.execute({
       sql: 'UPDATE users SET name = ?, age = ?, gender = ?, mobile = ?, history = ? WHERE username = ?',
       args: [name, age || null, gender || null, mobile || null, history || '', req.user.username],

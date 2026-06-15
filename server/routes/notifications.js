@@ -9,7 +9,7 @@ router.post('/store-token', async (req, res) => {
     if (!fcmToken) {
       return res.status(400).json({ error: 'fcmToken is required' });
     }
-    const db = getDb();
+    const db = await getDb();
     await db.execute({
       sql: 'UPDATE users SET fcmToken = ? WHERE username = ?',
       args: [fcmToken, req.user.username],

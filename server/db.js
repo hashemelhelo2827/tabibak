@@ -2,29 +2,31 @@ const { createClient } = require('@libsql/client');
 const path = require('path');
 
 let db;
+let initPromise = null;
 
-function getDb() {
+async function getDb() {
   if (!db) {
     const url = process.env.TURSO_DB_URL;
     const authToken = process.env.TURSO_DB_TOKEN;
 
     if (url && authToken) {
-      // Cloud mode — Turso
       db = createClient({ url, authToken });
     } else {
-      // Local fallback — use file-based SQLite via Turso's local mode
       const filePath = path.join(__dirname, 'tabibak.db');
       db = createClient({ url: `file:${filePath}` });
     }
 
-    initSchema();
+    initPromise = initSchema();
+    await initPromise;
+  } else if (initPromise) {
+    await initPromise;
   }
   return db;
 }
 
 async function initSchema() {
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS users (
+  const statements = [
+    `CREATE TABLE IF NOT EXISTS users (
       username TEXT PRIMARY KEY,
       passwordHash TEXT NOT NULL,
       name TEXT NOT NULL,
@@ -34,10 +36,8 @@ async function initSchema() {
       history TEXT DEFAULT '',
       fcmToken TEXT DEFAULT '',
       createdAt TEXT DEFAULT (datetime('now'))
-    )
-  `);
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS sessions (
+    )`,
+    `CREATE TABLE IF NOT EXISTS sessions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL,
       type TEXT NOT NULL DEFAULT 'triage',
@@ -45,10 +45,8 @@ async function initSchema() {
       details TEXT DEFAULT '',
       createdAt TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (username) REFERENCES users(username)
-    )
-  `);
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS medications (
+    )`,
+    `CREATE TABLE IF NOT EXISTS medications (
       id TEXT PRIMARY KEY,
       username TEXT NOT NULL,
       name TEXT NOT NULL,
@@ -61,18 +59,14 @@ async function initSchema() {
       color TEXT DEFAULT '',
       createdAt TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (username) REFERENCES users(username)
-    )
-  `);
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS medication_doses (
+    )`,
+    `CREATE TABLE IF NOT EXISTS medication_doses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       medicationId TEXT NOT NULL,
       time TEXT NOT NULL,
       FOREIGN KEY (medicationId) REFERENCES medications(id) ON DELETE CASCADE
-    )
-  `);
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS medication_log (
+    )`,
+    `CREATE TABLE IF NOT EXISTS medication_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL,
       medicationId TEXT NOT NULL,
@@ -81,8 +75,11 @@ async function initSchema() {
       takenAt TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (username) REFERENCES users(username),
       FOREIGN KEY (medicationId) REFERENCES medications(id)
-    )
-  `);
+    )`,
+  ];
+  for (const sql of statements) {
+    await db.execute(sql);
+  }
 }
 
 module.exports = { getDb };

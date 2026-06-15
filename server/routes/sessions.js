@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   try {
-    const db = getDb();
+    const db = await getDb();
     const sessions = await db.execute({
       sql: 'SELECT * FROM sessions WHERE username = ? ORDER BY createdAt DESC',
       args: [req.user.username],
@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
     if (!result) {
       return res.status(400).json({ error: 'Result is required' });
     }
-    const db = getDb();
+    const db = await getDb();
     const info = await db.execute({
       sql: 'INSERT INTO sessions (username, type, result, details) VALUES (?, ?, ?, ?)',
       args: [req.user.username, type || 'triage', result, details || ''],
@@ -43,7 +43,7 @@ router.post('/', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const db = getDb();
+    const db = await getDb();
     const session = await db.execute({
       sql: 'SELECT * FROM sessions WHERE id = ? AND username = ?',
       args: [req.params.id, req.user.username],
