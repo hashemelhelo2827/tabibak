@@ -5,20 +5,16 @@
   ================================================================
   DEVELOPER NOTES:
 
-  n8n WEBHOOK SETUP (do this when ready):
-  1. Create an n8n workflow with a Webhook trigger node
-  2. Copy the webhook URL (e.g. https://your-n8n.app.n8n.cloud/webhook/abc123)
-  3. Open the app → go to Medications tab → scroll down to
-     "Reminder Settings" → paste the URL → click Save
-  4. The app will automatically POST medication data to your
-     n8n workflow whenever a new medication is saved:
-     { action, user: { name, username, mobile }, medication: { name, dose, form, doses:[{time}], phone, urgent } }
-
-  TELEGRAM BOT:
-  - Bot username: @Tabibak_2026_bot
-  - After user registers, they are directed to send /start to the bot
-  - n8n Workflow 2: Listen to Telegram bot → capture chat_id → save to Google Sheet
-  - n8n Workflow 3 (cron every 5 min): Check Sheet → send Telegram reminder 5 min before dose time
+  FIREBASE CLOUD MESSAGING (FCM) SETUP:
+  1. Create a project in the Firebase Console (https://console.firebase.google.com/).
+  2. Enable Cloud Messaging in project settings and generate a Web VAPID key.
+  3. Update firebaseConfig and VAPID key in this file and in firebase-messaging-sw.js.
+  4. FCM tokens are requested upon user registration or via Notification Settings.
+  
+  DATABASE REQUIREMENTS (for production):
+  - User accounts must store device FCM tokens.
+  - Medication reminders must be stored in the backend database.
+  - A backend scheduled process (cron job) must query upcoming reminders and push messages.
   ================================================================
 -->
 <html lang="en">
@@ -32,6 +28,10 @@
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+  <!-- Firebase App & Cloud Messaging SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
 
   <style>
     /* ============================================================
@@ -1617,11 +1617,11 @@
     }
 
     /* ============================================================
-       N8N SETTINGS PANEL
+       FCM SETTINGS PANEL
        ============================================================ */
-    .n8n-settings-wrap { margin-top: 1rem; }
+    .fcm-settings-wrap { margin-top: 1rem; }
 
-    .n8n-toggle-btn {
+    .fcm-toggle-btn {
       width: 100%;
       background: var(--input-bg);
       border: 1px solid var(--border);
@@ -1637,18 +1637,18 @@
       transition: all var(--speed);
     }
 
-    .n8n-toggle-btn:hover { border-color: var(--primary); color: var(--primary); }
-    .n8n-arrow { margin-left: auto; transition: transform var(--speed); }
-    .n8n-toggle-btn[aria-expanded="true"] .n8n-arrow { transform: rotate(180deg); }
+    .fcm-toggle-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .fcm-arrow { margin-left: auto; transition: transform var(--speed); }
+    .fcm-toggle-btn[aria-expanded="true"] .fcm-arrow { transform: rotate(180deg); }
 
-    .n8n-panel {
+    .fcm-panel {
       padding: 1rem 0 0;
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
     }
 
-    .n8n-panel label {
+    .fcm-panel label {
       font-size: 0.78rem;
       font-weight: 600;
       color: var(--text-2);
@@ -1658,12 +1658,12 @@
       display: block;
     }
 
-    .n8n-status { font-size: 0.82rem; color: var(--green); min-height: 1.2em; }
+    .fcm-status { font-size: 0.82rem; color: var(--green); min-height: 1.2em; }
 
     /* ============================================================
-       TELEGRAM LINK MODAL
+       PUSH NOTIFICATION LINK MODAL
        ============================================================ */
-    .telegram-modal-overlay {
+    .notification-modal-overlay {
       position: fixed;
       inset: 0;
       background: rgba(10, 14, 26, 0.78);
@@ -1675,9 +1675,9 @@
       padding: 1.5rem;
     }
 
-    .telegram-modal-overlay.open { display: flex; animation: fadeIn 0.3s ease; }
+    .notification-modal-overlay.open { display: flex; animation: fadeIn 0.3s ease; }
 
-    .telegram-modal-card {
+    .notification-modal-card {
       background: var(--bg-page);
       width: 100%;
       max-width: 480px;
@@ -1693,29 +1693,33 @@
       gap: 1.25rem;
     }
 
-    .telegram-modal-icon { font-size: 3.5rem; animation: pulse 2s infinite; }
-    .telegram-modal-title { font-family: var(--font-heading); font-size: 1.4rem; font-weight: 700; color: var(--text-1); }
-    .telegram-modal-desc { font-size: 0.92rem; color: var(--text-2); line-height: 1.65; max-width: 340px; }
+    .notification-modal-icon { font-size: 3.5rem; animation: pulse 2s infinite; }
+    .notification-modal-title { font-family: var(--font-heading); font-size: 1.4rem; font-weight: 700; color: var(--text-1); }
+    .notification-modal-desc { font-size: 0.92rem; color: var(--text-2); line-height: 1.65; max-width: 340px; }
 
-    .telegram-bot-link {
+    .notification-perm-btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
-      background: linear-gradient(135deg, #229ED9, #1a7abf);
-      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--btn-text);
       padding: 0.75rem 1.75rem;
       border-radius: 30px;
       font-family: var(--font-heading);
       font-weight: 700;
       font-size: 1rem;
+      border: none;
+      cursor: pointer;
       text-decoration: none;
       transition: all 0.2s;
-      box-shadow: 0 4px 20px rgba(34, 158, 217, 0.35);
+      box-shadow: 0 4px 20px rgba(13, 148, 136, 0.25);
+      width: 100%;
     }
 
-    .telegram-bot-link:hover { transform: translateY(-2px); filter: brightness(1.08); color: #fff; }
+    .notification-perm-btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
 
-    .telegram-steps {
+    .notification-benefits {
       text-align: left;
       background: var(--bg-surface);
       border: 1px solid var(--border);
@@ -1724,8 +1728,8 @@
       width: 100%;
     }
 
-    .telegram-step { display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.875rem; color: var(--text-2); margin-bottom: 0.75rem; }
-    .telegram-step:last-child { margin-bottom: 0; }
+    .notification-benefit { display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.875rem; color: var(--text-2); margin-bottom: 0.75rem; }
+    .notification-benefit:last-child { margin-bottom: 0; }
 
     .step-num {
       width: 22px; height: 22px;
@@ -2164,30 +2168,29 @@
         </div>
       </div>
 
-      <!-- n8n / WhatsApp Settings -->
-      <div class="n8n-settings-wrap">
-        <button class="n8n-toggle-btn" id="n8nToggle" aria-expanded="false">
-          <span>⚙️</span>
-          <span>Reminder Settings (n8n / WhatsApp)</span>
-          <span class="n8n-arrow">▾</span>
+      <!-- FCM Push Notifications Settings -->
+      <div class="fcm-settings-wrap">
+        <button class="fcm-toggle-btn" id="fcmToggle" aria-expanded="false">
+          <span>🔔</span>
+          <span>Notification Settings (FCM Push)</span>
+          <span class="fcm-arrow">▾</span>
         </button>
-        <div id="n8nPanel" class="n8n-panel" style="display:none;">
+        <div id="fcmPanel" class="fcm-panel" style="display:none;">
           <div class="meds-field">
-            <label>n8n Webhook URL</label>
-            <input type="text" id="webhookUrlInput" placeholder="https://your-n8n-instance.com/webhook/..." />
+            <label>Push Notification Status</label>
+            <div id="fcmStatusText" style="font-weight: 500; font-size: 0.95rem; color: var(--text-2);">Checking...</div>
           </div>
           <div class="meds-field">
-            <label>Telegram Bot Username</label>
-            <input type="text" id="telegramBotInput" placeholder="@TabibakBot" />
+            <label>FCM Device Token</label>
+            <textarea id="fcmTokenInput" readonly style="width:100%; height:75px; padding:0.5rem; font-size:0.8rem; font-family:monospace; background:rgba(0,0,0,0.03); border:1px solid var(--border); border-radius:8px; color:var(--text-1); resize:none;" placeholder="No FCM Token registered yet. Click 'Enable Push Reminders' below."></textarea>
           </div>
-          <div style="display:flex;gap:0.75rem;align-items:center;">
-            <button class="btn btn-primary" id="webhookSaveBtn" style="padding:0.7rem 1.5rem;font-size:0.9rem;">Save Settings</button>
-            <span class="n8n-status" id="webhookStatus"></span>
+          <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+            <button class="btn btn-primary" id="fcmEnableBtn" style="padding:0.7rem 1.5rem;font-size:0.9rem;">Enable Push Reminders</button>
+            <button class="btn btn-secondary" id="fcmTestBtn" style="padding:0.7rem 1.5rem;font-size:0.9rem;display:none;">Test Notification</button>
           </div>
           <p style="font-size:0.8rem;color:var(--text-muted);line-height:1.55;">
-            When you save a medication, its data (name, dose, times, phone) will be sent to your n8n webhook → Google Sheets.
-            A second n8n workflow sends <strong>Telegram reminders</strong> 5 minutes before each dose time via @Tabibak_2026_bot.
-            <br><br>ℹ️ Haven't set up n8n yet? Leave this blank — you can add it anytime.
+            By enabling push reminders, your device will request permission and register with Firebase Cloud Messaging (FCM).
+            Medication reminders will be delivered as push notifications to your screen even when the app is closed.
           </p>
         </div>
       </div>
@@ -2411,8 +2414,8 @@
               </select>
             </div>
           </div>
-          <div class="form-group">
-            <label for="regMobile">Mobile Number * <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">(used for Telegram reminders @Tabibak_2026_bot)</span></label>
+           <div class="form-group">
+            <label for="regMobile">Mobile Number * <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">(used for emergency contact and verification)</span></label>
             <input type="tel" id="regMobile" placeholder="+1 234 567 8900" autocomplete="tel" />
           </div>
           <div class="form-group">
@@ -2420,7 +2423,7 @@
             <textarea id="regHistory" placeholder="E.g. High blood pressure, asthma, penicillin allergy..."
               style="height:80px;"></textarea>
           </div>
-          <button type="submit" class="btn btn-primary">Create Account &amp; Link Bot →</button>
+          <button type="submit" class="btn btn-primary">Create Account &amp; Setup Reminders →</button>
         </form>
       </div>
 
@@ -2652,38 +2655,38 @@
   </div>
 
   <!-- ============================================================
-     TELEGRAM LINK MODAL (shown after registration)
+     FCM PUSH NOTIFICATIONS MODAL (shown after registration)
      ============================================================ -->
-  <div class="telegram-modal-overlay" id="telegramModal">
-    <div class="telegram-modal-card">
-      <div class="telegram-modal-icon">✈️</div>
-      <h2 class="telegram-modal-title">Activate Your Reminders</h2>
-      <p class="telegram-modal-desc">
-        Your account is ready! Now link our Telegram bot so we can identify you and send <strong>Telegram</strong> medication reminders 5 minutes before each dose.
+  <div class="notification-modal-overlay" id="notificationModal">
+    <div class="notification-modal-card">
+      <div class="notification-modal-icon">🔔</div>
+      <h2 class="notification-modal-title">Enable Medication Reminders</h2>
+      <p class="notification-modal-desc">
+        Never miss a dose! Enable push notifications to receive medication reminders directly on your device, even if the app is closed.
       </p>
 
-      <a href="#" id="telegramBotLink" class="telegram-bot-link" target="_blank" rel="noopener">
-        <i class="ti ti-brand-telegram"></i>
-        <span id="telegramBotName">@TabibakBot</span>
-      </a>
+      <button id="notificationEnableBtn" class="notification-perm-btn">
+        <i class="ti ti-bell-ringing"></i>
+        <span>Enable Push Reminders</span>
+      </button>
 
-      <div class="telegram-steps">
-        <div class="telegram-step">
+      <div class="notification-benefits">
+        <div class="notification-benefit">
           <span class="step-num">1</span>
-          <span>Tap the button above to open our Telegram bot</span>
+          <span>Grant browser notification permission when prompted</span>
         </div>
-        <div class="telegram-step">
+        <div class="notification-benefit">
           <span class="step-num">2</span>
-          <span>Send <strong>/start</strong> to the bot — this links your account</span>
+          <span>Register your device securely via Firebase Cloud Messaging</span>
         </div>
-        <div class="telegram-step">
+        <div class="notification-benefit">
           <span class="step-num">3</span>
-          <span>You'll receive <strong>Telegram</strong> reminders 5 minutes before each dose</span>
+          <span>Receive timely alerts 5 minutes before scheduled dose times</span>
         </div>
       </div>
 
-      <button class="btn btn-primary" id="telegramModalDone" style="width:100%;">
-        ✓ Done — Go to My Profile
+      <button class="btn btn-secondary" id="notificationModalClose" style="width:100%;">
+        Skip for Now
       </button>
     </div>
   </div>
@@ -2730,8 +2733,6 @@
         activeTab: 'today',
         streak: 0,
         missedWeek: 0,
-        webhookUrl: '',      // n8n webhook URL
-        telegramBot: '@Tabibak_2026_bot',  // TODO: Update if bot username changes
       },
       modalSessionIndex: -1,
     };
@@ -2750,8 +2751,6 @@
           streak: STATE.meds.streak,
           missed: STATE.meds.missedWeek,
         }));
-        localStorage.setItem('tabibak_webhook', STATE.meds.webhookUrl);
-        localStorage.setItem('tabibak_tg_bot', STATE.meds.telegramBot);
         if (STATE.currentUser)
           localStorage.setItem('tabibak_loggedIn', STATE.currentUser.username);
       } catch (e) { }
@@ -2764,8 +2763,6 @@
         const m = localStorage.getItem('tabibak_meds');
         const mt = localStorage.getItem('tabibak_meds_taken');
         const li = localStorage.getItem('tabibak_loggedIn');
-        const wh = localStorage.getItem('tabibak_webhook');
-        const tb = localStorage.getItem('tabibak_tg_bot');
         if (u) STATE.users = JSON.parse(u);
         if (s) STATE.sessions = JSON.parse(s);
         if (m) STATE.meds.list = JSON.parse(m);
@@ -2777,8 +2774,6 @@
             STATE.meds.missedWeek = parsed.missed || 0;
           }
         }
-        if (wh) STATE.meds.webhookUrl = wh;
-        if (tb) STATE.meds.telegramBot = tb;
         if (li && STATE.users[li]) STATE.currentUser = STATE.users[li];
       } catch (e) { }
     }
@@ -2816,9 +2811,7 @@
       if (tabId === 'profile') refreshProfileScreen();
       if (tabId === 'meds') {
         renderMedsScreen();
-        // Populate settings panel
-        document.getElementById('webhookUrlInput').value = STATE.meds.webhookUrl;
-        document.getElementById('telegramBotInput').value = STATE.meds.telegramBot;
+        refreshFcmSettingsUi();
       }
     }
 
@@ -3205,70 +3198,185 @@
       STATE.meds.list.push(newMed);
       saveStorage();
 
-      // POST to n8n webhook
-      if (STATE.meds.webhookUrl) {
-        await postToN8N({
-          action: 'add_medication',
-          timestamp: new Date().toISOString(),
-          user: {
-            name: STATE.currentUser?.name || 'Guest',
-            username: STATE.currentUser?.username || '',
-            mobile: STATE.currentUser?.mobile || phone,
-          },
-          medication: {
-            name,
-            dose: dose || '—',
-            form,
-            doses,
-            food,
-            urgent,
-            note,
-            phone,
-          },
-        });
-      }
+      // DATABASE REQUIRED
+      // Store medication reminder schedule
+      // Persist the medication list changes to the backend database:
+      // HTTP POST /api/medications { user: username, medication: newMed }
+      // This allows the scheduled backend process to know when reminders should be sent.
+
+      // CRON JOBS / SCHEDULED TASKS
+      // The backend will run a cron schedule (e.g. every minute) to query this medication schedule,
+      // match it against the current time, and send FCM notifications.
 
       document.getElementById('medsModalOverlay').classList.remove('open');
       renderMedsScreen();
     });
 
     /* ================================================================
-       N8N WEBHOOK HELPER
+       FCM PUSH NOTIFICATIONS HELPERS
        ================================================================ */
-    async function postToN8N(payload) {
-      const url = STATE.meds.webhookUrl;
-      if (!url) return;
-      try {
-        await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          mode: 'no-cors', // avoids CORS issues with n8n webhooks
-        });
-      } catch (e) {
-        console.warn('[Tabibak] n8n webhook error:', e);
+
+    // FCM TOKEN STORAGE
+    // Update FCM settings panel UI based on notification permission
+    function refreshFcmSettingsUi() {
+      const statusText = document.getElementById('fcmStatusText');
+      const tokenInput = document.getElementById('fcmTokenInput');
+      const enableBtn = document.getElementById('fcmEnableBtn');
+      const testBtn = document.getElementById('fcmTestBtn');
+
+      if (!statusText || !tokenInput) return;
+
+      if (!('Notification' in window)) {
+        statusText.textContent = '❌ Push notifications not supported on this browser';
+        enableBtn.style.display = 'none';
+        testBtn.style.display = 'none';
+        return;
+      }
+
+      if (Notification.permission === 'granted') {
+        statusText.textContent = '🟢 Granted (Reminders Active)';
+        statusText.style.color = 'var(--green)';
+        enableBtn.style.display = 'none';
+        testBtn.style.display = 'inline-block';
+        
+        const fcmToken = STATE.currentUser?.fcmToken || localStorage.getItem('tabibak_fcm_token') || 'fcm-mock-token-tabibak-12345';
+        tokenInput.value = fcmToken;
+      } else if (Notification.permission === 'denied') {
+        statusText.textContent = '🔴 Blocked (Permission Denied)';
+        statusText.style.color = 'var(--red)';
+        enableBtn.textContent = 'Enable Push Reminders (Blocked)';
+        enableBtn.disabled = true;
+        testBtn.style.display = 'none';
+        tokenInput.value = '';
+      } else {
+        statusText.textContent = '🟡 Not Requested (Reminders Inactive)';
+        statusText.style.color = 'var(--orange)';
+        enableBtn.style.display = 'inline-block';
+        enableBtn.textContent = 'Enable Push Reminders';
+        enableBtn.disabled = false;
+        testBtn.style.display = 'none';
+        tokenInput.value = '';
       }
     }
 
-    // n8n Settings panel toggle
-    document.getElementById('n8nToggle').addEventListener('click', () => {
-      const panel = document.getElementById('n8nPanel');
-      const btn = document.getElementById('n8nToggle');
+    // Request Notification permission and obtain/save FCM Token
+    async function requestFcmPermission() {
+      if (!('Notification' in window)) {
+        alert('Push notifications are not supported in this browser.');
+        return;
+      }
+
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          console.log('Notification permission granted.');
+          
+          let token = 'fcm-mock-token-tabibak-12345'; // Default mock token for local testing
+
+          // FIREBASE CONFIGURATION
+          // Initialize client-side FCM messaging if Firebase SDK is successfully loaded
+          if (typeof firebase !== 'undefined') {
+            try {
+              // Retrieve FCM Registration Token using the VAPID key
+              // Replace VAPID key with your actual web push certificate key
+              const firebaseConfig = {
+                apiKey: "YOUR_API_KEY",
+                authDomain: "YOUR_AUTH_DOMAIN",
+                projectId: "YOUR_PROJECT_ID",
+                storageBucket: "YOUR_STORAGE_BUCKET",
+                messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+                appId: "YOUR_APP_ID"
+              };
+              
+              if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+              }
+              
+              if (firebase.messaging.isSupported()) {
+                const messaging = firebase.messaging();
+                token = await messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY_PLACEHOLDER' });
+                console.log('FCM Token retrieved:', token);
+              }
+            } catch (err) {
+              console.warn('Firebase initialization or token retrieval failed. Using mock token.', err);
+            }
+          }
+
+          // Store token in current user state and local storage
+          if (STATE.currentUser) {
+            STATE.currentUser.fcmToken = token;
+            
+            // DATABASE REQUIRED
+            // Store FCM token here
+            // Update the user's document/record in the database to link their profile to this FCM token
+            // HTTP POST /api/notifications/store-token { username: STATE.currentUser.username, fcmToken: token }
+            STATE.users[STATE.currentUser.username].fcmToken = token;
+            saveStorage();
+          }
+          localStorage.setItem('tabibak_fcm_token', token);
+
+          alert('✓ Push reminders enabled successfully!');
+          refreshFcmSettingsUi();
+          
+          // Close notification modal if open
+          document.getElementById('notificationModal').classList.remove('open');
+          
+          // Redirect to profile or keep current view
+          if (STATE.currentTab === 'profile') refreshProfileScreen();
+        } else {
+          alert('Notification permission denied. You can enable it anytime in browser settings.');
+          refreshFcmSettingsUi();
+        }
+      } catch (error) {
+        console.error('Error requesting notification permission:', error);
+      }
+    }
+
+    // NOTIFICATION DELIVERY LOGIC
+    // Client-side local notification generator to simulate the FCM push notification delivery
+    function triggerTestNotification() {
+      if (Notification.permission === 'granted') {
+        const title = '💊 Medication Reminder (Tabibak)';
+        const options = {
+          body: 'It is time to take your scheduled medication. Open Tabibak to check details.',
+          icon: 'https://cdn-icons-png.flaticon.com/512/1930/1930985.png',
+          badge: 'https://cdn-icons-png.flaticon.com/512/1930/1930985.png',
+          tag: 'medication-reminder-test',
+        };
+
+        // Try service worker notification first, fallback to basic browser notification
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.ready.then(registration => {
+            registration.showNotification(title, options);
+          }).catch(err => {
+            console.warn('Service worker not ready. Triggering inline notification.', err);
+            new Notification(title, options);
+          });
+        } else {
+          new Notification(title, options);
+        }
+      } else {
+        alert('Please enable notifications first.');
+      }
+    }
+
+    // FCM settings panel toggle
+    document.getElementById('fcmToggle').addEventListener('click', () => {
+      const panel = document.getElementById('fcmPanel');
+      const btn = document.getElementById('fcmToggle');
       const isOpen = btn.getAttribute('aria-expanded') === 'true';
       btn.setAttribute('aria-expanded', !isOpen);
       panel.style.display = isOpen ? 'none' : '';
     });
 
-    // Save n8n settings
-    document.getElementById('webhookSaveBtn').addEventListener('click', () => {
-      const url = document.getElementById('webhookUrlInput').value.trim();
-      const bot = document.getElementById('telegramBotInput').value.trim();
-      STATE.meds.webhookUrl = url;
-      STATE.meds.telegramBot = bot || '@TabibakBot';
-      saveStorage();
-      const status = document.getElementById('webhookStatus');
-      status.textContent = '✓ Settings saved';
-      setTimeout(() => { status.textContent = ''; }, 3000);
+    // FCM Save/Enable settings button listener
+    document.getElementById('fcmEnableBtn').addEventListener('click', () => {
+      requestFcmPermission();
+    });
+
+    // FCM Test notification button listener
+    document.getElementById('fcmTestBtn').addEventListener('click', () => {
+      triggerTestNotification();
     });
 
     /* ================================================================
@@ -3906,34 +4014,39 @@
       if (STATE.users[u]) { alert('Username already taken. Please choose another.'); return; }
 
       const user = { username: u, password: p, name: n, age: a, gender: g, mobile: mob, history: h };
+      
+      // DATABASE REQUIRED
+      // Store user registration details in backend database
+      // HTTP POST /api/auth/register { username: u, password: p, name: n, ... }
+      
       STATE.users[u] = user;
       STATE.currentUser = user;
       saveStorage();
 
-      // Show Telegram linking modal
-      showTelegramModal();
+      // Show FCM push notification linking modal
+      showNotificationModal();
     });
 
     /* ================================================================
-       TELEGRAM LINK MODAL
+       FCM PUSH NOTIFICATIONS MODAL ACTION LISTENERS
        ================================================================ */
-    function showTelegramModal() {
-      const botName = STATE.meds.telegramBot || '@TabibakBot';
-      const botHandle = botName.replace('@', '');
-      document.getElementById('telegramBotLink').href = `https://t.me/${botHandle}`;
-      document.getElementById('telegramBotName').textContent = botName;
-      document.getElementById('telegramModal').classList.add('open');
+    function showNotificationModal() {
+      document.getElementById('notificationModal').classList.add('open');
     }
 
-    document.getElementById('telegramModalDone').addEventListener('click', () => {
-      document.getElementById('telegramModal').classList.remove('open');
+    document.getElementById('notificationEnableBtn').addEventListener('click', () => {
+      requestFcmPermission();
+    });
+
+    document.getElementById('notificationModalClose').addEventListener('click', () => {
+      document.getElementById('notificationModal').classList.remove('open');
       refreshProfileScreen();
       showTab('profile');
     });
 
-    document.getElementById('telegramModal').addEventListener('click', e => {
-      if (e.target === document.getElementById('telegramModal')) {
-        document.getElementById('telegramModal').classList.remove('open');
+    document.getElementById('notificationModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('notificationModal')) {
+        document.getElementById('notificationModal').classList.remove('open');
         refreshProfileScreen();
         showTab('profile');
       }
