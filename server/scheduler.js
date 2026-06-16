@@ -19,7 +19,7 @@ function startScheduler() {
   let fcmReady = false;
   if (serviceAccount.projectId && serviceAccount.clientEmail && serviceAccount.privateKey) {
     try {
-      if (!admin.apps.length) {
+      if (admin.apps && admin.apps.length === 0) {
         admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
       }
       fcmReady = true;
