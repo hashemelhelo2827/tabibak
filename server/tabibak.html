@@ -663,6 +663,13 @@
     .chat-input-row input {
       flex-grow: 1;
     }
+    .chat-img {
+      max-width: 200px;
+      max-height: 180px;
+      border-radius: 10px;
+      margin-top: 6px;
+      display: block;
+    }
     .suggestions {
       display: flex;
       flex-wrap: wrap;
@@ -3130,7 +3137,9 @@
 
       <div class="chat-input-row">
         <input type="text" id="chatInput" placeholder="اكتب ردك هنا..." autocomplete="off" />
+        <button class="btn btn-secondary" id="chatImgBtn" title="إرفاق صورة" style="padding:0.875rem;font-size:1.2rem;line-height:1;">🖼️</button>
         <button class="btn btn-primary" id="sendBtn" style="padding:0.875rem 1.25rem;">إرسال</button>
+        <input type="file" id="chatImgInput" accept="image/*" style="display:none;" />
       </div>
 
     </main>
@@ -3532,7 +3541,11 @@
 
       <div id="profileContainer" style="display:none;width:100%;">
         <div class="profile-header">
-          <div class="avatar">👤</div>
+          <div class="avatar" id="avatarWrap" style="cursor:pointer;">
+            <img id="profileAvatar" src="" alt="" style="display:none;width:100%;height:100%;border-radius:50%;object-fit:cover;" />
+            <span id="avatarPlaceholder">👤</span>
+          </div>
+          <input type="file" id="avatarInput" accept="image/*" style="display:none;" />
           <div>
             <h2 id="profileName">اسم المريض</h2>
             <p id="profileUsername" style="color:var(--text-muted);">@username</p>
@@ -4635,14 +4648,26 @@
       { q: 'هل لديك حساسية من أي شيء، خاصة الأدوية؟', category: 'الحساسية' },
     ];
 
-    function appendMessage(role, text) {
+    function appendMessage(role, text, imgDataUrl) {
       const log = document.getElementById('chatLog');
       const div = document.createElement('div');
       div.className = `msg msg-${role}`;
-      div.textContent = text;
+      if (imgDataUrl) {
+        if (text) {
+          const p = document.createElement('p');
+          p.textContent = text;
+          div.appendChild(p);
+        }
+        const img = document.createElement('img');
+        img.className = 'chat-img';
+        img.src = imgDataUrl;
+        div.appendChild(img);
+      } else {
+        div.textContent = text;
+      }
       log.appendChild(div);
       log.scrollTop = log.scrollHeight;
-      STATE.triageSession.chatLog.push({ role, text });
+      STATE.triageSession.chatLog.push({ role, text, image: imgDataUrl || null });
     }
 
     function showSuggestions(chips) {
@@ -4752,12 +4777,12 @@
         setTimeout(askNextQuestion, 600);
       }
 
-    function handleUserChatInput() {
+    function handleUserChatInput(imgDataUrl) {
       const input = document.getElementById('chatInput');
       const text = input.value.trim();
-      if (!text) return;
+      if (!text && !imgDataUrl) return;
       input.value = '';
-      appendMessage('user', text);
+      appendMessage('user', text, imgDataUrl);
       checkRedFlags(text);
       STATE.triageSession.step++;
       updateProgress(STATE.triageSession.step, TRIAGE_QUESTIONS.length);
@@ -4767,6 +4792,20 @@
         setTimeout(finishTriage, 600);
       }
     }
+
+    /* ------ Chat image upload ------ */
+    document.getElementById('chatImgBtn').addEventListener('click', () => {
+      document.getElementById('chatImgInput').click();
+    });
+    document.getElementById('chatImgInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { alert('الحد الأقصى لحجم الصورة 5 ميجابايت'); return; }
+      const reader = new FileReader();
+      reader.onload = () => { handleUserChatInput(reader.result); };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
 
     function finishTriage() {
       const fullText = STATE.triageSession.chatLog.map(m => m.text).join(' ').toLowerCase();
@@ -5414,8 +5453,38 @@
         document.getElementById('profileGender').textContent = u.gender || '';
         document.getElementById('profileMobile').textContent = u.mobile || 'Not set';
         document.getElementById('profileHistory').textContent = u.history || 'No medical background declared.';
+        if (u.avatar) {
+          document.getElementById('profileAvatar').src = u.avatar;
+          document.getElementById('profileAvatar').style.display = '';
+          document.getElementById('avatarPlaceholder').style.display = 'none';
+        } else {
+          document.getElementById('profileAvatar').style.display = 'none';
+          document.getElementById('avatarPlaceholder').style.display = '';
+        }
       }
     }
+
+    /* ------ Profile photo upload ------ */
+    document.getElementById('avatarWrap').addEventListener('click', () => {
+      document.getElementById('avatarInput').click();
+    });
+    document.getElementById('avatarInput').addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { alert('الحد الأقصى لحجم الصورة 2 ميجابايت'); return; }
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          await api('PUT', '/api/auth/avatar', { avatar: reader.result });
+          STATE.currentUser = await api('GET', '/api/auth/profile');
+          refreshProfileScreen();
+        } catch (err) {
+          alert('فشل رفع الصورة');
+        }
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
 
     /* ================================================================
        HISTORY
