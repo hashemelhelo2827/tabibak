@@ -2642,6 +2642,95 @@
     }
 
     /* ============================================================
+       PHARMACIST SCREEN
+       ============================================================ */
+    .pharm-header {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .pharm-icon {
+      font-size: 2.5rem;
+      width: 68px; height: 68px;
+      background: var(--green-bg);
+      border: 2px solid var(--green-border);
+      border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .pharm-subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem; }
+    .pharm-phone-section {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem;
+    }
+    .pharm-options { display: flex; flex-direction: column; gap: 1rem; }
+    .pharm-option-card {
+      background: var(--bg-surface);
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      padding: 1.35rem;
+      display: flex; gap: 1rem; align-items: flex-start;
+      transition: all var(--speed);
+    }
+    .pharm-option-card:hover {
+      border-color: #25D366;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.1);
+      transform: translateY(-2px);
+    }
+    .pharm-option-icon {
+      font-size: 2rem; flex-shrink: 0;
+      width: 50px; height: 50px;
+      background: var(--green-bg);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pharm-option-content { flex: 1; min-width: 0; }
+    .pharm-option-content h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.3rem; color: var(--text-1); }
+    .pharm-option-content p { font-size: 0.85rem; color: var(--text-2); line-height: 1.5; }
+    .pharm-option-actions { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; flex-shrink: 0; }
+    .pharm-wa-btn {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: #25D366; color: #fff;
+      border: none; padding: 0.65rem 1.1rem; border-radius: 12px;
+      font-family: var(--font-heading); font-size: 0.875rem; font-weight: 600;
+      cursor: pointer; white-space: nowrap; transition: all 0.2s;
+    }
+    .pharm-wa-btn:hover { background: #1da851; transform: translateY(-1px); }
+    .pharm-preview-btn {
+      background: var(--input-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.5rem 0.85rem;
+      font-size: 0.82rem; font-family: var(--font-heading); font-weight: 600;
+      cursor: pointer; color: var(--text-2); transition: all 0.2s; white-space: nowrap;
+    }
+    .pharm-preview-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .pharm-report-preview {
+      margin-top: 0.85rem;
+      background: var(--input-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.85rem;
+      max-height: 160px; overflow-y: auto;
+      animation: fadeIn 0.3s ease;
+    }
+    .pharm-report-preview strong { font-size: 0.8rem; color: var(--text-2); }
+    .pharm-report-preview p { font-size: 0.78rem; color: var(--text-2); margin-top: 0.4rem; white-space: pre-wrap; line-height: 1.6; }
+    .pharm-no-report {
+      background: var(--orange-bg); border: 1px solid var(--orange-border);
+      border-radius: 14px; padding: 1.15rem 1.25rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      font-size: 0.875rem; color: var(--text-2);
+    }
+    .pharm-no-report span { font-size: 1.3rem; }
+    .pharm-disclaimer {
+      display: flex; gap: 0.75rem; align-items: flex-start;
+      font-size: 0.78rem; color: var(--text-muted);
+      background: var(--input-bg); border-radius: 12px; padding: 0.85rem 1rem; line-height: 1.55;
+    }
+    .pharm-disclaimer span { font-size: 1rem; flex-shrink: 0; }
+
+    /* ============================================================
        KEYFRAMES
        ============================================================ */
     @keyframes fadeIn {
@@ -2895,6 +2984,15 @@
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
       <circle cx="12" cy="12" r="3" />
     </symbol>
+    <!-- Pharmacist icon: mortar & pestle with Rx -->
+    <symbol id="icon-pharmacist" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+      stroke-linecap="round" stroke-linejoin="round">
+      <ellipse cx="12" cy="19" rx="6" ry="2.5"/>
+      <path d="M6 19v-5.5C6 10 18 10 18 13.5V19"/>
+      <path d="M9 13.5h4M11 11.5v4"/>
+      <path d="M16 3h3"/>
+      <path d="M17.5 2l1.5 1.5-1.5 1.5"/>
+    </symbol>
   </svg>
 
   <div class="app">
@@ -2938,6 +3036,10 @@
           <use href="#icon-bmi" />
         </svg>
         <span class="nav-label">كتلة الجسم</span>
+      </button>
+      <button class="nav-btn" data-tab="pharmacist">
+        <svg><use href="#icon-pharmacist" /></svg>
+        <span class="nav-label">الصيدلي</span>
       </button>
       <button class="nav-btn" data-tab="profile">
         <svg>
@@ -3517,6 +3619,99 @@
     </main>
 
     <!-- ============================================================
+       SCREEN 9 — PHARMACIST
+       ============================================================ -->
+    <main id="screen-pharmacist" class="screen glass">
+
+      <div class="pharm-header">
+        <div class="pharm-icon">💊</div>
+        <div>
+          <h2>استشر الصيدلي</h2>
+          <p class="pharm-subtitle">تواصل مع صيدلي عبر واتساب للحصول على المشورة الدوائية</p>
+        </div>
+      </div>
+
+      <!-- Pharmacy WhatsApp number -->
+      <div class="pharm-phone-section">
+        <div class="form-group">
+          <label for="pharmPhone">
+            رقم واتساب الصيدلية
+            <span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;">(يُحفظ تلقائياً)</span>
+          </label>
+          <div style="display:flex;gap:0.75rem;">
+            <input type="tel" id="pharmPhone" placeholder="+201234567890" style="flex:1;" />
+            <button class="btn btn-secondary" id="pharmSavePhone" style="white-space:nowrap;padding:0.7rem 1.2rem;">
+              حفظ الرقم
+            </button>
+          </div>
+          <p id="pharmPhoneSaved" style="font-size:0.8rem;color:var(--green);display:none;margin-top:0.3rem;">
+            ✓ تم حفظ رقم الصيدلية
+          </p>
+        </div>
+      </div>
+
+      <!-- Two WhatsApp options -->
+      <div class="pharm-options">
+
+        <!-- Option 1: Quick ask -->
+        <div class="pharm-option-card">
+          <div class="pharm-option-icon">💬</div>
+          <div class="pharm-option-content">
+            <h3>سؤال سريع</h3>
+            <p>افتح محادثة واتساب مع الصيدلي مباشرة لطرح سؤالك بحرية</p>
+          </div>
+          <div class="pharm-option-actions">
+            <button class="pharm-wa-btn" id="pharmQuickBtn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <path d="M19.05 4.91A9.82 9.82 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.32a8.26 8.26 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.17 8.17 0 0 1 2.41 5.83c.01 4.54-3.69 8.23-8.22 8.23z"/>
+              </svg>
+              فتح واتساب
+            </button>
+          </div>
+        </div>
+
+        <!-- Option 2: Send with full report -->
+        <div class="pharm-option-card" id="pharmReportCard">
+          <div class="pharm-option-icon">📋</div>
+          <div class="pharm-option-content">
+            <h3>سؤال مع التقرير الطبي</h3>
+            <p>يُرسل ملخص التشخيص والأعراض والتاريخ المرضي والأدوية الحالية تلقائياً</p>
+            <div class="pharm-report-preview" id="pharmReportPreview" style="display:none;">
+              <strong>معاينة الرسالة:</strong>
+              <p id="pharmReportText"></p>
+            </div>
+          </div>
+          <div class="pharm-option-actions">
+            <button class="pharm-preview-btn" id="pharmPreviewBtn">👁 معاينة التقرير</button>
+            <button class="pharm-wa-btn" id="pharmReportBtn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <path d="M19.05 4.91A9.82 9.82 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.32a8.26 8.26 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.17 8.17 0 0 1 2.41 5.83c.01 4.54-3.69 8.23-8.22 8.23z"/>
+              </svg>
+              إرسال مع التقرير
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Shown when no triage session exists yet -->
+      <div id="pharmNoReport" class="pharm-no-report" style="display:none;">
+        <span>ℹ️</span>
+        <p>لا يوجد تقرير فحص محفوظ حتى الآن. أكمل جلسة فحص أولاً للحصول على التقرير الطبي الكامل.</p>
+        <button class="btn btn-primary" onclick="showTab('landing')"
+          style="margin-top:0.5rem;font-size:0.85rem;padding:0.6rem 1.2rem;width:fit-content;">
+          ابدأ جلسة فحص
+        </button>
+      </div>
+
+      <div class="pharm-disclaimer">
+        <span>⚠️</span>
+        <p>هذه الميزة تفتح واتساب فقط — طبيبك لا يتواصل مباشرة مع الصيدلي. يبقى القرار الطبي للمختص المرخّص.</p>
+      </div>
+
+    </main>
+
+    <!-- ============================================================
        FOOTER
        ============================================================ -->
     <footer class="app-footer">
@@ -3845,6 +4040,7 @@
         meds: 'screen-meds',
         food: 'screen-food',
         bmi: 'screen-bmi',
+        pharmacist: 'screen-pharmacist',
         profile: 'screen-profile',
         history: 'screen-history',
       };
@@ -3862,6 +4058,7 @@
 
       if (tabId === 'history') refreshHistoryScreen();
       if (tabId === 'profile') refreshProfileScreen();
+      if (tabId === 'pharmacist') refreshPharmacistScreen();
       if (tabId === 'meds') {
         renderMedsScreen();
         refreshFcmSettingsUi();
@@ -5312,6 +5509,73 @@
       navigator.clipboard.writeText(text).catch(() => { });
       document.getElementById('modalCopyBtn').textContent = '✓ تم النسخ!';
       setTimeout(() => document.getElementById('modalCopyBtn').textContent = 'نسخ التقرير', 2000);
+    });
+
+    /* ================================================================
+       PHARMACIST
+       ================================================================ */
+    function refreshPharmacistScreen() {
+      const phone = localStorage.getItem('pharmPhone') || '';
+      document.getElementById('pharmPhone').value = phone;
+
+      const sessions = STATE.sessions.map(parseSession);
+      const hasReport = sessions.length > 0;
+
+      document.getElementById('pharmReportCard').style.display = hasReport ? '' : 'none';
+      document.getElementById('pharmNoReport').style.display = hasReport ? 'none' : '';
+    }
+
+    function buildPharmReport() {
+      const sessions = STATE.sessions.map(parseSession);
+      if (sessions.length === 0) return '';
+      const s = sessions[sessions.length - 1];
+      const user = STATE.currentUser;
+      const medNames = (STATE.meds.list || []).map(m => `${m.name} (${m.dose})`).join('، ') || 'لا يوجد';
+      return (
+        `🔬 تقرير طبي - طبيبك\n\n` +
+        `👤 المريض: ${user?.name || 'غير معروف'}\n` +
+        `🩺 الأعراض: ${s.symptom || 'غير محددة'}\n` +
+        `⚠️ مستوى الأولوية: ${(s.level || 'green').toUpperCase()}\n` +
+        `📋 التشخيص المحتمل: ${s.condition || 'قيد التقييم'}\n` +
+        `📝 التفاصيل: ${s.desc || ''}\n` +
+        `💊 الأدوية الحالية: ${medNames}\n` +
+        `📅 التاريخ: ${new Date().toLocaleString('ar-EG')}\n\n` +
+        `⚠️ هذا التقرير مولّد بواسطة الذكاء الاصطناعي وليس تشخيصاً سريرياً معتمداً.`
+      );
+    }
+
+    document.getElementById('pharmSavePhone').addEventListener('click', () => {
+      const phone = document.getElementById('pharmPhone').value.trim();
+      if (!phone) return;
+      localStorage.setItem('pharmPhone', phone);
+      document.getElementById('pharmPhoneSaved').style.display = '';
+      setTimeout(() => document.getElementById('pharmPhoneSaved').style.display = 'none', 2500);
+    });
+
+    document.getElementById('pharmQuickBtn').addEventListener('click', () => {
+      const phone = localStorage.getItem('pharmPhone') || '';
+      if (!phone) { alert('يرجى إدخال رقم واتساب الصيدلية أولاً.'); return; }
+      const clean = phone.replace(/[^0-9]/g, '');
+      window.open(`https://wa.me/${clean}`, '_blank');
+    });
+
+    document.getElementById('pharmPreviewBtn').addEventListener('click', () => {
+      const preview = document.getElementById('pharmReportPreview');
+      const text = document.getElementById('pharmReportText');
+      if (preview.style.display === 'none') {
+        text.textContent = buildPharmReport();
+        preview.style.display = '';
+      } else {
+        preview.style.display = 'none';
+      }
+    });
+
+    document.getElementById('pharmReportBtn').addEventListener('click', () => {
+      const phone = localStorage.getItem('pharmPhone') || '';
+      if (!phone) { alert('يرجى إدخال رقم واتساب الصيدلية أولاً.'); return; }
+      const clean = phone.replace(/[^0-9]/g, '');
+      const msg = encodeURIComponent(buildPharmReport());
+      window.open(`https://wa.me/${clean}?text=${msg}`, '_blank');
     });
 
     /* ================================================================
