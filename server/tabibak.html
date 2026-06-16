@@ -2991,15 +2991,6 @@
       <circle cx="12" cy="8" r="4" />
       <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
     </symbol>
-    <!-- Pharmacist icon: mortar & pestle with Rx -->
-    <symbol id="icon-pharmacist" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-      stroke-linecap="round" stroke-linejoin="round">
-      <ellipse cx="12" cy="19" rx="6" ry="2.5"/>
-      <path d="M6 19v-5.5C6 10 18 10 18 13.5V19"/>
-      <path d="M9 13.5h4M11 11.5v4"/>
-      <path d="M16 3h3"/>
-      <path d="M17.5 2l1.5 1.5-1.5 1.5"/>
-    </symbol>
     <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
       stroke-linecap="round" stroke-linejoin="round">
       <polyline points="3 6 5 6 21 6" />
@@ -3890,6 +3881,10 @@
     </div>
   </div>
 
+  <!-- Firebase SDK for FCM (loaded synchronously so firebase is available inline) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+
   <!-- ================================================================
      JAVASCRIPT
      ================================================================ -->
@@ -4011,7 +4006,6 @@
         pharmacist: 'screen-pharmacist',
         profile: 'screen-profile',
         history: 'screen-history',
-        pharmacist: 'screen-pharmacist',
       };
 
       const el = document.getElementById(screenMap[tabId]);
@@ -5707,9 +5701,6 @@
     renderDoseSlots(1);
   </script>
 
-  <!-- Firebase SDK for FCM (loaded non-blocking at the end) -->
-  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
 </body>
 
 </html>
