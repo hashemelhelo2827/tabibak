@@ -306,6 +306,8 @@
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
+      overflow-x: hidden;
+      max-width: 100%;
     }
 
     /* ============================================================
@@ -1878,7 +1880,7 @@
        ============================================================ */
     #screen-meds {
       gap: 1rem;
-      padding: 1.75rem;
+      overflow: hidden;
     }
 
     .meds-header {
@@ -1970,7 +1972,8 @@
       padding: 0.35rem;
       border-radius: 30px;
       margin-bottom: 1.25rem;
-      width: fit-content;
+      width: 100%;
+      max-width: 280px;
     }
 
     .meds-tab {
@@ -1984,6 +1987,7 @@
       font-family: var(--font-heading);
       font-weight: 600;
       transition: all 0.2s;
+      flex: 1;
     }
 
     .meds-tab.active {
