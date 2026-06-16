@@ -16,54 +16,93 @@
     /* ============================================================
        DESIGN TOKENS — light & dark themes
        ============================================================ */
-    :root {
-      --font-heading: 'Cairo', 'Outfit', sans-serif;
-      --font-body: 'Cairo', 'Inter', sans-serif;
-      --radius: 20px;
-      --speed: 0.3s;
-
-      --bg-page: #f1f5f4;
-      --bg-surface: rgba(255, 255, 255, 0.88);
-      --border: rgba(13, 148, 136, 0.08);
-
-      --primary: #0d9488;
-      --primary-glow: rgba(13, 148, 136, 0.06);
-      --secondary: #0ea5e9;
-      --secondary-glow: rgba(14, 165, 233, 0.06);
-      --btn-text: #ffffff;
-
-      --text-1: #1e293b;
-      --text-2: #475569;
-      --text-muted: #8b96a5;
-
-      --input-bg: rgba(255, 255, 255, 0.7);
-      --input-focus: #ffffff;
-
-      --bubble-bot: rgba(241, 245, 249, 0.95);
-      --bubble-user: rgba(14, 165, 233, 0.06);
-      --bubble-user-b: rgba(14, 165, 233, 0.16);
-
-      --shadow: 0 10px 30px rgba(13, 148, 136, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-
-      --red: #e11d48;
-      --red-bg: #fff1f2;
-      --red-border: rgba(225, 29, 72, 0.15);
-      --orange: #d97706;
-      --orange-bg: #fef3c7;
-      --orange-border: rgba(217, 119, 6, 0.15);
-      --green: #0d9488;
-      --green-bg: #f0fdfa;
-      --green-border: rgba(13, 148, 136, 0.15);
-
-      --med-bg: rgba(255, 255, 255, 0.88);
-      --med-card-bg: #f8fffe;
-      --med-border: rgba(13, 148, 136, 0.12);
-      --med-taken: rgba(13, 148, 136, 0.06);
-      --med-streak: #d97706;
-      --med-missed: #e11d48;
-      --med-check: #0d9488;
-    }
-
+   :root {
+  /* Typography */
+  --font-heading: 'Cairo', 'Outfit', sans-serif;
+  --font-body: 'Cairo', 'Inter', sans-serif;
+  
+  /* Spacing scale */
+  --sp-xs: 0.25rem;
+  --sp-sm: 0.5rem;
+  --sp-md: 1rem;
+  --sp-lg: 1.5rem;
+  --sp-xl: 2rem;
+  --sp-2xl: 3rem;
+  
+  /* Border radius */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 20px;
+  --r-xl: 24px;
+  --r-full: 9999px;
+  --radius: 20px;  /* keep existing name */
+  
+  /* Speed */
+  --speed: 0.25s;
+  --speed-slow: 0.4s;
+  
+  /* Colors - Light */
+  --bg-page: #f0f4f8;
+  --bg-surface: rgba(255, 255, 255, 0.90);
+  --bg-surface-hover: rgba(255, 255, 255, 0.98);
+  --border: rgba(13, 148, 136, 0.10);
+  --border-strong: rgba(13, 148, 136, 0.20);
+  
+  --primary: #0d9488;
+  --primary-dark: #0a7a70;
+  --primary-light: #e6f7f5;
+  --primary-glow: rgba(13, 148, 136, 0.08);
+  --primary-glow-strong: rgba(13, 148, 136, 0.18);
+  
+  --secondary: #0ea5e9;
+  --secondary-glow: rgba(14, 165, 233, 0.08);
+  
+  --btn-text: #ffffff;
+  
+  --text-1: #0f1729;
+  --text-2: #4a5568;
+  --text-muted: #94a3b8;
+  
+  --input-bg: rgba(248, 250, 252, 0.80);
+  --input-bg-hover: rgba(241, 245, 249, 0.90);
+  --input-focus: #ffffff;
+  
+  --bubble-bot: #f8fafc;
+  --bubble-bot-border: rgba(13, 148, 136, 0.08);
+  --bubble-user: rgba(14, 165, 233, 0.06);
+  --bubble-user-b: rgba(14, 165, 233, 0.18);
+  
+  /* Layered shadows */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 2px 8px rgba(13, 148, 136, 0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow: 0 8px 24px rgba(13, 148, 136, 0.06), 0 2px 6px rgba(0,0,0,0.04);
+  --shadow-md: 0 12px 32px rgba(13, 148, 136, 0.10), 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-lg: 0 20px 50px rgba(13, 148, 136, 0.12), 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-colored: 0 8px 24px rgba(13, 148, 136, 0.20);
+  
+  /* Status colors */
+  --red: #dc2626;
+  --red-bg: #fef2f2;
+  --red-border: rgba(220, 38, 38, 0.15);
+  --red-glow: rgba(220, 38, 38, 0.12);
+  
+  --orange: #d97706;
+  --orange-bg: #fffbeb;
+  --orange-border: rgba(217, 119, 6, 0.15);
+  
+  --green: #059669;
+  --green-bg: #ecfdf5;
+  --green-border: rgba(5, 150, 105, 0.15);
+  
+  /* Meds */
+  --med-bg: rgba(255, 255, 255, 0.90);
+  --med-card-bg: #f8fffe;
+  --med-border: rgba(13, 148, 136, 0.12);
+  --med-taken: rgba(13, 148, 136, 0.05);
+  --med-streak: #d97706;
+  --med-missed: #dc2626;
+  --med-check: #059669;
+}
     body.dark {
       --bg-page: #0a0e1a;
       --bg-surface: rgba(17, 28, 52, 0.75);
@@ -3303,22 +3342,9 @@
         </div>
       </div>
 
-      <div>
-        <button class="api-toggle-btn" id="apiToggle" aria-expanded="false">
-          <span>🔑</span>
-          <span id="apiLabel">مفتاح الذكاء الاصطناعي مطلوب — انقر للإضافة</span>
-          <span class="api-arrow">▾</span>
-        </button>
-        <div id="apiPanel" class="api-panel" style="display:none;">
-          <p>تستخدم هذه الميزة واجهة برمجة Claude. احصل على مفتاح من <a href="https://console.anthropic.com"
-              target="_blank" rel="noopener">console.anthropic.com</a>. يُحفظ في جلسة المتصفح الحالية فقط.</p>
-          <div class="food-input-row">
-            <input type="password" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off" spellcheck="false" />
-            <button class="btn btn-secondary" id="apiSaveBtn">حفظ</button>
-          </div>
-          <p class="api-status" id="apiStatus"></p>
-        </div>
-      </div>
+      <!-- API key is embedded in code — not shown to user -->
+      <span id="apiLabel" style="display:none;"></span>
+      <span id="apiStatus" style="display:none;"></span>
 
       <div id="foodLoading" style="display:none;" class="food-loading">
         <div class="pulse-ring-wrap">
@@ -4379,119 +4405,129 @@
     });
 
     /* ================================================================
-       FCM PUSH NOTIFICATIONS
+       BROWSER PUSH NOTIFICATIONS — REMINDER SCHEDULER
+       No Firebase, no external service.
+       Works natively in the browser. Tab must stay open.
        ================================================================ */
-    function refreshFcmSettingsUi() {
-      const statusText = document.getElementById('fcmStatusText');
-      const tokenInput = document.getElementById('fcmTokenInput');
-      const enableBtn = document.getElementById('fcmEnableBtn');
-      const testBtn = document.getElementById('fcmTestBtn');
 
-      if (!statusText || !tokenInput) return;
+    // Tracks the setInterval handle so we never start it twice
+    let reminderIntervalHandle = null;
+
+    /* ------ Update the notification settings panel UI ------ */
+    function refreshNotifSettingsUi() {
+      const statusEl  = document.getElementById('fcmStatusText');
+      const enableBtn = document.getElementById('fcmEnableBtn');
+      const testBtn   = document.getElementById('fcmTestBtn');
+      if (!statusEl) return;
 
       if (!('Notification' in window)) {
-        statusText.textContent = '❌ الإشعارات غير مدعومة في هذا المتصفح';
+        statusEl.textContent = '❌ الإشعارات غير مدعومة في هذا المتصفح';
         enableBtn.style.display = 'none';
-        testBtn.style.display = 'none';
+        testBtn.style.display   = 'none';
         return;
       }
 
       if (Notification.permission === 'granted') {
-        statusText.textContent = '🟢 مفعّلة (التذكيرات نشطة)';
-        statusText.style.color = 'var(--green)';
+        statusEl.textContent  = '🟢 مفعّلة — التذكيرات نشطة';
+        statusEl.style.color  = 'var(--green)';
         enableBtn.style.display = 'none';
-        testBtn.style.display = 'inline-block';
-        
-        const fcmToken = STATE.currentUser?.fcmToken || localStorage.getItem('tabibak_fcm_token') || '';
-        tokenInput.value = fcmToken;
+        testBtn.style.display   = 'inline-block';
+        startReminderScheduler();
       } else if (Notification.permission === 'denied') {
-        statusText.textContent = '🔴 محجوبة (تم رفض الإذن)';
-        statusText.style.color = 'var(--red)';
-        enableBtn.textContent = 'تفعيل الإشعارات (محجوب)';
-        enableBtn.disabled = true;
+        statusEl.textContent  = '🔴 محجوبة — اسمح بالإشعارات من إعدادات المتصفح';
+        statusEl.style.color  = 'var(--red)';
+        enableBtn.disabled    = true;
         testBtn.style.display = 'none';
-        tokenInput.value = '';
       } else {
-        statusText.textContent = '🟡 لم يُطلَب بعد (التذكيرات غير نشطة)';
-        statusText.style.color = 'var(--orange)';
-        enableBtn.style.display = 'inline-block';
-        enableBtn.textContent = 'تفعيل إشعارات الأدوية';
-        enableBtn.disabled = false;
+        statusEl.textContent  = '🟡 غير مفعّلة — انقر لتفعيل التذكيرات';
+        statusEl.style.color  = 'var(--orange)';
+        enableBtn.disabled    = false;
         testBtn.style.display = 'none';
-        tokenInput.value = '';
       }
     }
 
-    async function requestFcmPermission() {
+    /* ------ Ask for permission then start scheduler ------ */
+    async function requestNotifPermission() {
       if (!('Notification' in window)) {
         alert('الإشعارات غير مدعومة في هذا المتصفح.');
         return;
       }
-      try {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          let token = 'fcm-mock-token-tabibak-12345';
-          if (typeof firebase !== 'undefined') {
-            try {
-              const firebaseConfig = {
-                apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN",
-                projectId: "YOUR_PROJECT_ID", storageBucket: "YOUR_STORAGE_BUCKET",
-                messagingSenderId: "YOUR_MESSAGING_SENDER_ID", appId: "YOUR_APP_ID"
-              };
-              if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-              if (firebase.messaging.isSupported()) {
-                const messaging = firebase.messaging();
-                token = await messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY_PLACEHOLDER' });
-              }
-            } catch (err) { console.warn('فشل تهيئة Firebase.', err); }
-          }
-          if (STATE.currentUser) {
-            STATE.currentUser.fcmToken = token;
-            try { await api('POST', '/api/notifications/store-token', { fcmToken: token }); } catch (e) {}
-          }
-          localStorage.setItem('tabibak_fcm_token', token);
-          alert('✓ تم تفعيل التذكيرات بنجاح!');
-          refreshFcmSettingsUi();
-          document.getElementById('notificationModal').classList.remove('open');
-          if (STATE.currentTab === 'profile') refreshProfileScreen();
-        } else {
-          alert('تم رفض إذن الإشعارات. يمكنك تفعيله في أي وقت من إعدادات المتصفح.');
-          refreshFcmSettingsUi();
-        }
-      } catch (error) { console.error('خطأ في طلب إذن الإشعارات:', error); }
-    }
-
-    function triggerTestNotification() {
-      if (Notification.permission === 'granted') {
-        const title = '💊 تذكير دواء (طبيبك)';
-        const options = {
-          body: 'حان وقت أخذ دوائك المجدول. افتح طبيبك للاطلاع على التفاصيل.',
-          icon: 'https://cdn-icons-png.flaticon.com/512/1930/1930985.png',
-          badge: 'https://cdn-icons-png.flaticon.com/512/1930/1930985.png',
-          tag: 'medication-reminder-test',
-        };
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.ready.then(registration => {
-            registration.showNotification(title, options);
-          }).catch(err => { new Notification(title, options); });
-        } else {
-          new Notification(title, options);
-        }
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') {
+        startReminderScheduler();
+        document.getElementById('notificationModal').classList.remove('open');
+        alert('✓ تم تفعيل التذكيرات! ستصلك إشعارات قبل 5 دقائق من موعد كل جرعة.');
       } else {
-        alert('يرجى تفعيل الإشعارات أولاً.');
+        alert('تم رفض إذن الإشعارات. يمكنك تفعيله من إعدادات المتصفح.');
       }
+      refreshNotifSettingsUi();
     }
 
+    /* ------ Fire a test notification right now ------ */
+    function triggerTestNotification() {
+      if (Notification.permission !== 'granted') {
+        alert('يرجى تفعيل الإشعارات أولاً.');
+        return;
+      }
+      new Notification('💊 طبيبك — اختبار التذكير', {
+        body: 'هذا إشعار تجريبي. ستصلك تذكيرات حقيقية قبل 5 دقائق من كل جرعة.',
+        icon: 'https://cdn-icons-png.flaticon.com/512/1930/1930985.png',
+        tag : 'tabibak-test',
+      });
+    }
+
+    /* ------ The scheduler: checks every 60 seconds ------ */
+    function startReminderScheduler() {
+      if (reminderIntervalHandle) return; // already running
+
+      reminderIntervalHandle = setInterval(() => {
+        if (Notification.permission !== 'granted') return;
+
+        const now     = new Date();
+        const nowMins = now.getHours() * 60 + now.getMinutes();
+
+        STATE.meds.list.forEach(med => {
+          // Support both old single-time and new multi-dose format
+          const doses = med.doses && med.doses.length ? med.doses : [{ time: med.time || '08:00' }];
+
+          doses.forEach((dose, idx) => {
+            const [dh, dm]  = (dose.time || '08:00').split(':').map(Number);
+            const doseMins  = dh * 60 + dm;
+            const minsLeft  = doseMins - nowMins;
+
+            // Fire when exactly 5 minutes away (window: 4.5–5.5 min)
+            if (minsLeft >= 4.5 && minsLeft < 5.5) {
+              // Use sessionStorage to avoid firing twice in the same minute
+              const fireKey = `notif_${med.id}_dose${idx}_${now.toDateString()}`;
+              if (!sessionStorage.getItem(fireKey)) {
+                sessionStorage.setItem(fireKey, '1');
+                new Notification(`💊 تذكير دواء — ${med.name}`, {
+                  body: `حان وقت جرعة ${med.name} (${med.dose}) خلال 5 دقائق — الموعد: ${dose.time}`,
+                  icon: 'https://cdn-icons-png.flaticon.com/512/1930/1930985.png',
+                  tag : fireKey,
+                  requireInteraction: true,
+                });
+              }
+            }
+          });
+        });
+      }, 60_000); // check every 60 seconds
+
+      console.log('⏰ Tabibak reminder scheduler started');
+    }
+
+    /* ------ Wire the toggle / enable / test buttons ------ */
     document.getElementById('fcmToggle').addEventListener('click', () => {
-      const panel = document.getElementById('fcmPanel');
-      const btn = document.getElementById('fcmToggle');
+      const panel  = document.getElementById('fcmPanel');
+      const btn    = document.getElementById('fcmToggle');
       const isOpen = btn.getAttribute('aria-expanded') === 'true';
-      btn.setAttribute('aria-expanded', !isOpen);
+      btn.setAttribute('aria-expanded', String(!isOpen));
       panel.style.display = isOpen ? 'none' : '';
+      if (!isOpen) refreshNotifSettingsUi();
     });
 
-    document.getElementById('fcmEnableBtn').addEventListener('click', () => { requestFcmPermission(); });
-    document.getElementById('fcmTestBtn').addEventListener('click', () => { triggerTestNotification(); });
+    document.getElementById('fcmEnableBtn').addEventListener('click', requestNotifPermission);
+    document.getElementById('fcmTestBtn').addEventListener('click', triggerTestNotification);
 
     /* ================================================================
        TRIAGE CHAT ENGINE
@@ -5126,21 +5162,7 @@
       STATE.food.selectedMood = '';
     });
 
-    document.getElementById('apiToggle').addEventListener('click', () => {
-      const panel = document.getElementById('apiPanel');
-      const toggle = document.getElementById('apiToggle');
-      const open = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', !open);
-      panel.style.display = open ? 'none' : '';
-    });
-
-    document.getElementById('apiSaveBtn').addEventListener('click', () => {
-      const key = document.getElementById('apiKeyInput').value.trim();
-      if (!key) return;
-      STATE.food.apiKey = key;
-      document.getElementById('apiStatus').textContent = '✓ تم حفظ المفتاح لهذه الجلسة';
-      document.getElementById('apiLabel').textContent = '🔑 تم إضافة مفتاح الذكاء الاصطناعي — انقر للتغيير';
-    });
+    // API key is set in STATE.food.apiKey — no user UI needed
 
     /* ================================================================
        AUTH
@@ -5168,7 +5190,7 @@
         STATE.currentUser = data;
         STATE.sessions = await api('GET', '/api/sessions');
         try { STATE.meds.list = await api('GET', '/api/medications'); } catch (e) { STATE.meds.list = []; }
-        connectSocket();
+        if (Notification.permission === 'granted') startReminderScheduler();
         refreshProfileScreen();
         showTab('profile');
       } catch (err) {
@@ -5210,7 +5232,6 @@
         const data = await api('POST', '/api/auth/register', { username: u, password: p, name: n, age: a, gender: g, mobile: mob, history: h });
         setToken(data.token);
         STATE.currentUser = data;
-        connectSocket();
         showNotificationModal();
       } catch (err) {
         alert(err.message || 'فشل التسجيل. يرجى المحاولة مرة أخرى.');
@@ -5218,13 +5239,13 @@
     });
 
     /* ================================================================
-       FCM NOTIFICATION MODAL
+       NOTIFICATION PERMISSION MODAL
        ================================================================ */
     function showNotificationModal() {
       document.getElementById('notificationModal').classList.add('open');
     }
 
-    document.getElementById('notificationEnableBtn').addEventListener('click', () => { requestFcmPermission(); });
+    document.getElementById('notificationEnableBtn').addEventListener('click', requestNotifPermission);
 
     document.getElementById('notificationModalClose').addEventListener('click', () => {
       document.getElementById('notificationModal').classList.remove('open');
@@ -5246,7 +5267,6 @@
       STATE.sessions = [];
       STATE.meds.list = [];
       STATE.meds.taken = {};
-      disconnectSocket();
       refreshProfileScreen();
       refreshHistoryScreen();
     });
@@ -5447,6 +5467,144 @@
     });
 
     /* ================================================================
+       PHARMACIST MODULE
+       Hardcoded pharmacy WhatsApp: +201009537600
+       Two modes:
+         1. Quick ask  — opens WhatsApp with a greeting
+         2. With report — includes last diagnosis + history + meds
+       ================================================================ */
+
+    const PHARMACY_PHONE = '201009537600'; // hardcoded — no country-code plus needed for wa.me
+
+    /* Build a wa.me URL */
+    function buildWaUrl(phone, message) {
+      const clean = phone.replace(/[\s\-\+\(\)]/g, '');
+      return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
+    }
+
+    /* Build the full medical report text from the last saved session */
+    function buildPharmReport() {
+      const u = STATE.currentUser;
+      let msg = '🏥 *طبيبك — تقرير طبي للصيدلي*\n';
+      msg += '━━━━━━━━━━━━━━━━━━━━\n\n';
+
+      // Patient info
+      if (u) {
+        msg += `👤 *المريض:* ${u.name || 'غير محدد'}\n`;
+        msg += `🎂 *العمر:* ${u.age || '—'} | *الجنس:* ${u.gender || '—'}\n`;
+        if (u.mobile) msg += `📱 *الجوال:* ${u.mobile}\n`;
+        if (u.history) msg += `📋 *التاريخ المرضي:* ${u.history}\n`;
+        msg += '\n';
+      }
+
+      // Last triage session
+      const sessions     = STATE.sessions || [];
+      const lastSession  = sessions.length > 0 ? parseSession(sessions[0]) : null;
+
+      if (lastSession) {
+        const sessionDate = new Date(lastSession.date || lastSession.createdAt)
+          .toLocaleDateString('ar-EG', { day: '2-digit', month: 'long', year: 'numeric' });
+
+        msg += `🩺 *آخر تشخيص (${sessionDate}):*\n`;
+        msg += `   الحالة: ${lastSession.condition || '—'}\n`;
+        msg += `   الأعراض: ${lastSession.symptom || '—'}\n`;
+        if (lastSession.desc) msg += `   التحليل: ${lastSession.desc}\n`;
+
+        if (lastSession.recs && lastSession.recs.length) {
+          msg += `\n✦ *التوصيات السابقة:*\n`;
+          lastSession.recs.forEach((r, i) => { msg += `   ${i + 1}. ${r}\n`; });
+        }
+        msg += '\n';
+      }
+
+      // Current medications
+      if (STATE.meds.list && STATE.meds.list.length > 0) {
+        msg += '💊 *الأدوية الحالية:*\n';
+        STATE.meds.list.forEach(m => {
+          const doses = m.doses && m.doses.length ? m.doses : [{ time: m.time || '—' }];
+          const times = doses.map(d => d.time).join('، ');
+          msg += `   • ${m.name} ${m.dose} (${m.form || ''}) — ${times}\n`;
+        });
+        msg += '\n';
+      }
+
+      msg += '━━━━━━━━━━━━━━━━━━━━\n';
+      msg += '⚠️ هذا التقرير مُولَّد بواسطة تطبيق طبيبك (ذكاء اصطناعي) وليس تشخيصاً طبياً رسمياً.\n';
+      msg += 'أرجو تقديم المشورة الدوائية المناسبة. شكراً.';
+      return msg;
+    }
+
+    /* Refresh pharmacist screen every time user opens it */
+    function refreshPharmacistScreen() {
+      // Pre-fill phone input with hardcoded number (user can override)
+      const phoneInput = document.getElementById('pharmPhone');
+      if (phoneInput && !phoneInput.value) {
+        phoneInput.value = '+' + PHARMACY_PHONE;
+      }
+
+      // Disable report option if no sessions saved yet
+      const hasSession  = STATE.sessions && STATE.sessions.length > 0;
+      const noReportEl  = document.getElementById('pharmNoReport');
+      const reportCard  = document.getElementById('pharmReportCard');
+      if (noReportEl && reportCard) {
+        noReportEl.style.display      = hasSession ? 'none' : '';
+        reportCard.style.opacity      = hasSession ? '1' : '0.5';
+        reportCard.style.pointerEvents = hasSession ? '' : 'none';
+      }
+    }
+
+    /* Save pharmacy phone number */
+    document.getElementById('pharmSavePhone').addEventListener('click', () => {
+      const val = document.getElementById('pharmPhone').value.trim();
+      if (!val) { alert('يرجى إدخال رقم الواتساب.'); return; }
+      localStorage.setItem('tabibak_pharm_phone', val);
+      const savedMsg = document.getElementById('pharmPhoneSaved');
+      savedMsg.style.display = '';
+      setTimeout(() => { savedMsg.style.display = 'none'; }, 2500);
+    });
+
+    /* Option 1: Quick ask — open WhatsApp with greeting only */
+    document.getElementById('pharmQuickBtn').addEventListener('click', () => {
+      const savedPhone = localStorage.getItem('tabibak_pharm_phone')
+        || document.getElementById('pharmPhone').value.trim()
+        || PHARMACY_PHONE;
+
+      const userName = STATE.currentUser?.name || 'مريض';
+      const msg = `مرحباً، أنا ${userName}.\nأرغب في استشارة صيدلانية عبر تطبيق طبيبك.`;
+      window.open(buildWaUrl(savedPhone, msg), '_blank');
+    });
+
+    /* Toggle the report preview */
+    document.getElementById('pharmPreviewBtn').addEventListener('click', () => {
+      const preview = document.getElementById('pharmReportPreview');
+      const textEl  = document.getElementById('pharmReportText');
+      const isOpen  = preview.style.display !== 'none';
+      if (isOpen) {
+        preview.style.display = 'none';
+        document.getElementById('pharmPreviewBtn').textContent = '👁 معاينة التقرير';
+      } else {
+        textEl.textContent    = buildPharmReport();
+        preview.style.display = '';
+        document.getElementById('pharmPreviewBtn').textContent = '✕ إخفاء المعاينة';
+      }
+    });
+
+    /* Option 2: Send with full medical report */
+    document.getElementById('pharmReportBtn').addEventListener('click', () => {
+      const hasSession = STATE.sessions && STATE.sessions.length > 0;
+      if (!hasSession) {
+        alert('لا يوجد تقرير فحص بعد. يرجى إكمال جلسة فحص أولاً.');
+        return;
+      }
+      const savedPhone = localStorage.getItem('tabibak_pharm_phone')
+        || document.getElementById('pharmPhone').value.trim()
+        || PHARMACY_PHONE;
+
+      const msg = buildPharmReport();
+      window.open(buildWaUrl(savedPhone, msg), '_blank');
+    });
+
+    /* ================================================================
        INIT
        ================================================================ */
     loadLocalMedsTaken();
@@ -5456,6 +5614,21 @@
       refreshProfileScreen();
       refreshHistoryScreen();
       if (STATE.meds.list.length === 0) renderMedsScreen();
+
+      // Auto-start reminder scheduler if permission was already granted before
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        startReminderScheduler();
+      }
+
+      // Pre-fill pharmacist phone from localStorage if saved previously
+      const savedPhone = localStorage.getItem('tabibak_pharm_phone');
+      if (savedPhone) {
+        const el = document.getElementById('pharmPhone');
+        if (el) el.value = savedPhone;
+      } else {
+        const el = document.getElementById('pharmPhone');
+        if (el) el.value = '+' + PHARMACY_PHONE;
+      }
     })();
 
     // Initialize dose slots in modal on first render
