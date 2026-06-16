@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>Tabibak — Deployment Report</title>
+<style>
+  @page { margin: 2cm; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; line-height: 1.6; max-width: 900px; margin: auto; padding: 20px; }
+  h1 { color: #0d9488; border-bottom: 3px solid #0d9488; padding-bottom: 10px; font-size: 28px; }
+  h2 { color: #0e2a2a; margin-top: 30px; border-left: 4px solid #0d9488; padding-left: 12px; }
+  h3 { color: #1a1a3a; margin-top: 20px; }
+  .badge { display: inline-block; background: #0d9488; color: white; padding: 3px 12px; border-radius: 12px; font-size: 12px; margin-right: 6px; }
+  .badge-blue { background: #3b82f6; }
+  .badge-purple { background: #8b5cf6; }
+  .badge-orange { background: #f59e0b; }
+  .badge-red { background: #ef4444; }
+  .box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .box-green { background: #f0fdf4; border-color: #86efac; }
+  .box-yellow { background: #fefce8; border-color: #facc15; }
+  .box-red { background: #fef2f2; border-color: #fca5a5; }
+  .arrow { font-size: 24px; margin: 0 8px; color: #0d9488; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
+  th { background: #0d9488; color: white; }
+  tr:nth-child(even) { background: #f8fafc; }
+  code { background: #f1f5f4; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  pre { background: #1a1a2e; color: #e2e8f0; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 12px; }
+  .url { color: #0d9488; font-weight: bold; font-size: 18px; word-break: break-all; }
+  .url-small { color: #0d9488; font-weight: bold; font-size: 14px; word-break: break-all; }
+  .section { page-break-inside: avoid; }
+  .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center; }
+  .repo-box { background: #f0f4ff; border: 1px solid #93c5fd; border-radius: 8px; padding: 16px; margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<h1>Tabibak — Local to Global Deployment Report</h1>
+<p style="font-size:18px;color:#64748b;">Transforming a local HTML app into a globally deployed, real-time synchronized web application</p>
+
+<div class="box-yellow" style="border:2px solid #f59e0b;padding:20px;border-radius:12px;">
+  <h3 style="margin-top:0;color:#d97706;">⚠️ Important — Deployment Ownership</h3>
+  <p><strong>The live URL below belongs to <code>hashemelhelo2827</code>'s Railway account.</strong></p>
+  <p>This deployment was created from the fork <code>hashemelhelo2827/tabibak</code>. It is <em>not</em> linked to the main repo <code>abdallah-hesham4567/tabibak</code>.</p>
+  <p>If <code>abdallah-hesham4567</code> wants their own deployment, they must create their own Railway project and Turso database, then deploy from their repo. This URL will remain under <code>hashemelhelo2827</code>'s control.</p>
+</div>
+
+<div class="box box-green">
+  <strong>🌐 Live URL (Fork — hashemelhelo2827):</strong><br>
+  <span class="url">https://truthful-enchantment-production-2411.up.railway.app/tabibak.html</span><br><br>
+  <strong>📦 GitHub Repos:</strong><br>
+  • Fork: <code>https://github.com/hashemelhelo2827/tabibak</code> ← this deployment's source<br>
+  • Main: <code>https://github.com/abdallah-hesham4567/tabibak</code> ← original project
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+<h2>1. Original State — Local Only</h2>
+<p>The application was a single <code>tabibak.html</code> file (~4300 lines) with embedded CSS and JavaScript. All data was stored in the browser's <code>localStorage</code>:</p>
+
+<table>
+  <tr><th>Feature</th><th>Original Implementation</th></tr>
+  <tr><td>Data Storage</td><td><code>localStorage</code> (browser-only, single device)</td></tr>
+  <tr><td>User Auth</td><td>Plain text passwords in <code>localStorage</code>, no hashing</td></tr>
+  <tr><td>API</td><td>No backend — all logic in the browser</td></tr>
+  <tr><td>Real-time Sync</td><td>Not supported</td></tr>
+  <tr><td>Deployment</td><td>Open HTML file directly from desktop (<code>file://</code>)</td></tr>
+  <tr><td>Data Persistence</td><td>Cleared on browser cache reset, single device only</td></tr>
+</table>
+
+<div class="box">
+<strong>Limitations:</strong><br>
+• Data not shared across devices<br>
+• Lost on browser cache clear<br>
+• No user authentication security (plain text passwords)<br>
+• No backend for push notifications or scheduled reminders
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+<h2>2. Repo Structure</h2>
+<div class="repo-box">
+  <strong>Before (original repo):</strong><br>
+  <pre style="margin:4px 0;">
+tabibak/
+├── tabibak.html          # Single file app (~4300 lines)
+├── README.md
+└── firebase-messaging-sw.js
+  </pre>
+  <strong>After (both repos):</strong><br>
+  <pre style="margin:4px 0;">
+tabibak/
+├── tabibak.html                     # Frontend (modified with API calls)
+├── firebase-messaging-sw.js
+├── Tabibak-Deployment-Report.pdf    # This document
+├── README.md
+└── server/                          # NEW — Node.js backend
+    ├── index.js                     # Express + Socket.io server
+    ├── db.js                        # Turso/ SQLite database client
+    ├── auth.js                      # JWT middleware
+    ├── package.json
+    ├── .env / .env.example
+    ├── tabibak.html                 # Copy for Railway deployment
+    ├── firebase-messaging-sw.js     # Copy for Railway deployment
+    └── routes/
+        ├── auth.js                  # Register, login, profile
+        ├── medications.js           # CRUD + dose logging
+        ├── sessions.js              # Triage history CRUD
+        └── notifications.js         # FCM push token storage
+  </pre>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+<h2>3. Architecture Transformation</h2>
+<p>The architecture was transformed from a single HTML file to a full-stack client-server application:</p>
+
+<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin:16px 0;text-align:center;font-family:monospace;">
+  <strong>BEFORE:</strong> Browser ↔ localStorage<br><br>
+  <strong>AFTER:</strong><br>
+  Browser (HTML/CSS/JS) → Node.js/Express API → Turso (Cloud SQLite)<br>
+  Browser ← Socket.io (Real-time) ← Node.js/Express API
+</div>
+
+<table>
+  <tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr>
+  <tr><td>Frontend</td><td>HTML5, CSS3, Vanilla JS</td><td>UI (same as original, with API integration)</td></tr>
+  <tr><td>Backend</td><td>Node.js + Express</td><td>REST API server on port 3000</td></tr>
+  <tr><td>Real-time</td><td>Socket.io (v4)</td><td>WebSocket events for cross-device sync</td></tr>
+  <tr><td>Database</td><td>Turso (SQLite-compatible)</td><td>Cloud-hosted, persistent, globally distributed</td></tr>
+  <tr><td>Hosting</td><td>Railway (SFO region)</td><td>Auto-scaling Node.js hosting</td></tr>
+  <tr><td>Auth</td><td>bcrypt + JWT</td><td>Password hashing + token-based sessions</td></tr>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+<h2>4. Database — From localStorage to Turso Cloud SQLite</h2>
+
+<p><span class="badge">Step 1</span> <strong>Replace <code>better-sqlite3</code> with <code>@libsql/client</code></strong><br>
+The synchronous SQLite driver was replaced with Turso's async client, which works with both local files and cloud databases.</p>
+
+<p><span class="badge">Step 2</span> <strong>Same SQL Schema</strong><br>
+All tables use standard SQLite syntax — no migration needed:</p>
+
+<table>
+  <tr><th>Table</th><th>Purpose</th></tr>
+  <tr><td><code>users</code></td><td>Username, bcrypt password hash, profile, FCM token</td></tr>
+  <tr><td><code>sessions</code></td><td>Triage assessment history with full results (JSON)</td></tr>
+  <tr><td><code>medications</code></td><td>Medication name, dose, form, urgency flag</td></tr>
+  <tr><td><code>medication_doses</code></td><td>Dose times per medication (one-to-many)</td></tr>
+  <tr><td><code>medication_log</code></td><td>Daily dose taken tracking</td></tr>
+</table>
+
+<p><span class="badge">Step 3</span> <strong>Turso Cloud Database Created</strong><br>
+Database URL: <code>libsql://tabibak-hashemelhelo2827.aws-ap-south-1.turso.io</code><br>
+Free tier: 500 databases, 9 GB storage, 1B row reads/month</p>
+
+<div class="box">
+<strong>Fallback behavior:</strong> When <code>TURSO_DB_URL</code> + <code>TURSO_DB_TOKEN</code> are not set, the app falls back to a local SQLite file — keeping local development working without changes.
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+<h2>5. Environment Configuration</h2>
+<p>Environment variables via <code>dotenv</code> manage all configuration:</p>
+
+<table>
+  <tr><th>Variable</th><th>Local</th><th>Production (Railway)</th></tr>
+  <tr><td><code>PORT</code></td><td>3000</td><td>Auto-assigned by Railway</td></tr>
+  <tr><td><code>NODE_ENV</code></td><td>development</td><td>production</td></tr>
+  <tr><td><code>JWT_SECRET</code></td><td>dev-secret</td><td>Random 256-bit secret</td></tr>
+  <tr><td><code>FRONTEND_URL</code></td><td>http://localhost:3000</td><td>https://truthful-enchantment-production-2411.up.railway.app</td></tr>
+  <tr><td><code>TURSO_DB_URL</code></td><td><em>not set</em></td><td>libsql://tabibak-hashemelhelo2827.aws-ap-south-1.turso.io</td></tr>
+  <tr><td><code>TURSO_DB_TOKEN</code></td><td><em>not set</em></td><td>JWT auth token</td></tr>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+<h2>6. Real-Time Synchronization with Socket.io</h2>
+<p>WebSocket events are emitted whenever data changes, enabling instant cross-device sync:</p>
+
+<table>
+  <tr><th>Event</th><th>Triggered When</th><th>What Clients Do</th></tr>
+  <tr><td><code>medications:updated</code></td><td>Medication created or deleted</td><td>Refetch & re-render meds list</td></tr>
+  <tr><td><code>medications:dose-logged</code></td><td>Dose marked as taken</td><td>Refetch meds + update progress</td></tr>
+  <tr><td><code>sessions:created</code></td><td>Triage session saved</td><td>Refetch & refresh history screen</td></tr>
+</table>
+
+<p><strong>Flow:</strong></p>
+<div class="box">
+Phone: Add Medication → <code>POST /api/medications</code> → Server saves to Turso<br>
+Server emits <code>medications:updated</code> → <code>room:user:john</code><br>
+Laptop (in <code>room:user:john</code>) receives event → auto-refetches data → updates UI<br>
+→ <strong>No page refresh needed</strong>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+<h2>7. Frontend Changes</h2>
+<p>Only minimal changes were needed in <code>tabibak.html</code>:</p>
+
+<table>
+  <tr><th>Change</th><th>Before</th><th>After</th></tr>
+  <tr><td><code>API_BASE</code></td><td><code>'http://localhost:3000'</code></td><td><code>window.location.origin</code> — works everywhere</td></tr>
+  <tr><td>Data Storage</td><td><code>localStorage</code> for everything</td><td>API calls to backend; localStorage only for JWT token + taken doses</td></tr>
+  <tr><td>Auth</td><td>Plain text, in-browser only</td><td>bcrypt + JWT via API</td></tr>
+  <tr><td>Login</td><td>Check <code>STATE.users</code> locally</td><td><code>POST /api/auth/login</code></td></tr>
+  <tr><td>Register</td><td>Save to <code>localStorage</code></td><td><code>POST /api/auth/register</code></td></tr>
+  <tr><td>Medications</td><td>Local array + localStorage</td><td><code>POST/GET/DELETE /api/medications</code></td></tr>
+  <tr><td>Sessions</td><td>Local array + localStorage</td><td><code>POST/GET/DELETE /api/sessions</code></td></tr>
+  <tr><td>Real-time</td><td>None</td><td>Socket.io client auto-connects on login</td></tr>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+<h2>8. Security Improvements</h2>
+<table>
+  <tr><th>Area</th><th>Before</th><th>After</th></tr>
+  <tr><td>Passwords</td><td>Plain text in localStorage</td><td>bcrypt hashed (10 rounds)</td></tr>
+  <tr><td>Auth Sessions</td><td>Username in localStorage</td><td>JWT with 7-day expiry</td></tr>
+  <tr><td>CORS</td><td>No CORS</td><td>Restricted to <code>FRONTEND_URL</code> origin</td></tr>
+  <tr><td>Database</td><td>localStorage (any browser dev tools)</td><td>Turso cloud (authenticated API)</td></tr>
+  <tr><td>Secret Management</td><td>Hardcoded in HTML</td><td>Environment variables via dotenv</td></tr>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+<h2>9. Deployment Pipeline</h2>
+<div class="box">
+<strong>1. GitHub Fork</strong> — Code pushed to <code>hashemelhelo2827/tabibak</code><br>
+<strong>2. Turso</strong> — Cloud database created via Turso web UI (free tier, under hashemelhelo2827's account)<br>
+<strong>3. Railway</strong> — Node.js service deployed from <code>server/</code> directory (under hashemelhelo2827's account)<br>
+<strong>4. Environment Variables</strong> — Turso credentials, JWT secret, FRONTEND_URL set via Railway CLI<br>
+<strong>5. Auto-deploy</strong> — <code>railway up</code> uploads and deploys directly
+</div>
+
+<h3>How to make your own copy (for abdallah-hesham4567):</h3>
+<div class="box-yellow">
+<ol>
+  <li>Sign up at <strong>https://railway.app</strong> with GitHub</li>
+  <li>Click <strong>New Project</strong> → <strong>Deploy from GitHub repo</strong> → select <code>abdallah-hesham4567/tabibak</code></li>
+  <li>Set root directory to <code>server/</code></li>
+  <li>Sign up at <strong>https://turso.tech</strong> with GitHub → create a database → get URL + token</li>
+  <li>Add these env vars in Railway dashboard:
+    <pre style="font-size:11px;">
+TURSO_DB_URL=libsql://your-db-url.turso.io
+TURSO_DB_TOKEN=your-token
+JWT_SECRET=your-random-secret
+FRONTEND_URL=https://your-app.up.railway.app</pre>
+  </li>
+  <li>Done — your own live URL will appear</li>
+</ol>
+</div>
+
+<p><strong>This deployment's URL:</strong> <span class="url">https://truthful-enchantment-production-2411.up.railway.app/tabibak.html</span></p>
+<p><strong>Region:</strong> San Francisco, California (sfo)</p>
+<p><strong>Hosting Cost:</strong> Free tier (Railway + Turso)</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+<h2>10. API Endpoints Summary</h2>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Auth Required</th><th>Description</th></tr>
+  <tr><td>POST</td><td>/api/auth/register</td><td>No</td><td>Create account (bcrypt hashed)</td></tr>
+  <tr><td>POST</td><td>/api/auth/login</td><td>No</td><td>Login, returns JWT</td></tr>
+  <tr><td>GET</td><td>/api/auth/profile</td><td>Yes</td><td>Get profile</td></tr>
+  <tr><td>PUT</td><td>/api/auth/profile</td><td>Yes</td><td>Update profile</td></tr>
+  <tr><td>GET</td><td>/api/medications</td><td>Yes</td><td>List user's medications</td></tr>
+  <tr><td>POST</td><td>/api/medications</td><td>Yes</td><td>Add medication</td></tr>
+  <tr><td>DELETE</td><td>/api/medications/:id</td><td>Yes</td><td>Delete medication</td></tr>
+  <tr><td>POST</td><td>/api/medications/log</td><td>Yes</td><td>Log dose as taken</td></tr>
+  <tr><td>GET</td><td>/api/sessions</td><td>Yes</td><td>List triage sessions</td></tr>
+  <tr><td>POST</td><td>/api/sessions</td><td>Yes</td><td>Save triage session</td></tr>
+  <tr><td>DELETE</td><td>/api/sessions/:id</td><td>Yes</td><td>Delete session</td></tr>
+  <tr><td>POST</td><td>/api/notifications/store-token</td><td>Yes</td><td>Save FCM push token</td></tr>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+<h2>11. Files Created / Modified</h2>
+<table>
+  <tr><th>File</th><th>Status</th><th>Purpose</th></tr>
+  <tr><td>server/index.js</td><td><span class="badge">New</span></td><td>Express server, Socket.io, CORS, dotenv</td></tr>
+  <tr><td>server/db.js</td><td><span class="badge">New</span></td><td>Turso/LibSQL database client + schema init</td></tr>
+  <tr><td>server/auth.js</td><td><span class="badge">New</span></td><td>JWT generation + verification middleware</td></tr>
+  <tr><td>server/routes/auth.js</td><td><span class="badge">New</span></td><td>Auth API endpoints (register, login, profile)</td></tr>
+  <tr><td>server/routes/medications.js</td><td><span class="badge">New</span></td><td>Medications CRUD + dose logging + Socket.io broadcast</td></tr>
+  <tr><td>server/routes/sessions.js</td><td><span class="badge">New</span></td><td>Sessions CRUD + Socket.io broadcast</td></tr>
+  <tr><td>server/routes/notifications.js</td><td><span class="badge">New</span></td><td>FCM push token storage</td></tr>
+  <tr><td>server/package.json</td><td><span class="badge">New</span></td><td>Dependencies + scripts</td></tr>
+  <tr><td>server/.env</td><td><span class="badge">New</span></td><td>Local development environment</td></tr>
+  <tr><td>server/.env.example</td><td><span class="badge">New</span></td><td>Production environment template</td></tr>
+  <tr><td>server/.gitignore</td><td><span class="badge">New</span></td><td>Ignore node_modules, .env, DB files</td></tr>
+  <tr><td>tabibak.html</td><td><span class="badge">Modified</span></td><td>API integration, Socket.io client, dynamic URL</td></tr>
+</table>
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+<h2>12. How to Run Locally</h2>
+<pre>
+cd server
+npm install
+npm start
+# Open http://localhost:3000/tabibak.html
+</pre>
+<p>Without Turso credentials, the app uses a local SQLite file automatically.</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="section">
+<h2>13. How to Manage This Deployment</h2>
+<pre>
+cd server
+railway logs          # View server logs
+railway open          # Open Railway dashboard
+railway redeploy      # Redeploy after changes
+railway variable --set KEY=VALUE   # Set env vars
+</pre>
+</div>
+
+<div class="footer">
+  Tabibak — Deployment Report • Generated June 15, 2026<br>
+  Live URL: https://truthful-enchantment-production-2411.up.railway.app/tabibak.html<br>
+  Owner: hashemelhelo2827 • GitHub: https://github.com/hashemelhelo2827/tabibak<br>
+  Main repo: https://github.com/abdallah-hesham4567/tabibak
+</div>
+
+</body>
+</html>
