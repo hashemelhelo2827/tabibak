@@ -37,19 +37,18 @@ function startScheduler() {
       const today = now.toISOString().slice(0, 10);
       const db = await getDb();
 
-      // Get all upcoming dose rows in one query (include timezoneOffset)
-      const allRows = await db.execute({
-        sql: `
-          SELECT md.id AS doseId, md.time AS doseTime,
-                 m.id AS medicationId, m.name AS medName, m.dose AS medDose,
-                 u.username, u.fcmToken, COALESCE(u.timezoneOffset, 0) AS tzOffset
-          FROM medication_doses md
-          JOIN medications m ON m.id = md.medicationId
-          JOIN users u ON u.username = m.username
-          WHERE u.fcmToken IS NOT NULL
-            AND u.fcmToken != ''
-        `,
-      });
+      // Get all users with FCM tokens for timezone-aware comparison
+      const sql = `
+        SELECT md.id AS doseId, md.time AS doseTime,
+               m.id AS medicationId, m.name AS medName, m.dose AS medDose,
+               u.username, u.fcmToken, COALESCE(u.timezoneOffset, 0) AS tzOffset
+        FROM medication_doses md
+        JOIN medications m ON m.id = md.medicationId
+        JOIN users u ON u.username = m.username
+        WHERE u.fcmToken IS NOT NULL
+          AND u.fcmToken != ''
+      `;
+      const allRows = await db.execute(sql);
 
       const targetUtc = new Date(now.getTime() + 5 * 60000);
 
