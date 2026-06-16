@@ -58,6 +58,11 @@ app.use('/api/sessions', authenticateToken, sessionRoutes);
 // Serve static frontend files
 app.use(express.static(__dirname));
 
+// Serve tabibak.html for root path
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'tabibak.html'));
+});
+
 server.listen(PORT, () => {
   console.log(`Tabibak server running on http://localhost:${PORT}`);
 });
