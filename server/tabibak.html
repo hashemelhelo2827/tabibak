@@ -1403,6 +1403,120 @@
       color: var(--green);
     }
 
+    /* Clinical Nutrition Advisor Enhancements */
+    .food-user-context-bar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.6rem 1rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+      color: var(--text-2);
+    }
+    .context-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .context-item i {
+      color: var(--primary);
+      font-size: 0.95rem;
+    }
+    .context-divider {
+      color: var(--border);
+      font-weight: 300;
+    }
+    .food-analysis-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    body.dark .food-analysis-card {
+      background: rgba(13, 148, 136, 0.05);
+    }
+    .fac-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .fac-icon {
+      font-size: 1.25rem;
+    }
+    .fac-text {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--text-2);
+    }
+    .food-warnings-card {
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-left: 4px solid var(--red);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .fwc-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--red);
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .fwc-icon {
+      font-size: 1.25rem;
+    }
+    .fwc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      padding: 0;
+      margin: 0;
+    }
+    .fwc-list li {
+      font-size: 0.9rem;
+      color: var(--text-2);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.4rem;
+    }
+    .fwc-list li::before {
+      content: "⚠️";
+      font-size: 0.9rem;
+    }
+    .food-item-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      width: 100%;
+    }
+    .food-item-name {
+      font-weight: 600;
+      color: var(--text-1);
+    }
+    .food-item-reason {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
     /* ============================================================
        BMI SCREEN
        ============================================================ */
@@ -3176,11 +3290,147 @@
         padding: 1.25rem 1.25rem 2rem;
       }
     }
+
+    /* ============================================================
+       WELCOME SPLASH SCREEN
+       ============================================================ */
+    .welcome-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #0f172a, #020617);
+      z-index: 999999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      direction: rtl;
+    }
+    
+    .welcome-screen.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    
+    .welcome-content {
+      text-align: center;
+      max-width: 600px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    
+    .welcome-logo-container {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .welcome-logo-glow {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: var(--primary);
+      filter: blur(25px);
+      opacity: 0.45;
+      border-radius: 50%;
+      animation: logoPulse 2.5s infinite alternate;
+    }
+    
+    .welcome-logo-icon {
+      position: relative;
+      font-size: 4rem;
+      color: #38bdf8;
+      animation: logoFloat 4s ease-in-out infinite;
+    }
+    
+    .welcome-text-container {
+      font-family: var(--font-heading);
+      min-height: 4.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.45rem;
+    }
+    
+    .welcome-word {
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: #f8fafc;
+      opacity: 0;
+      transform: translateY(15px);
+      display: inline-block;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    
+    .welcome-word.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .welcome-word-highlight {
+      color: var(--primary);
+      text-shadow: 0 0 15px rgba(13, 148, 136, 0.3);
+    }
+    
+    .welcome-progress-wrap {
+      width: 220px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 1rem;
+    }
+    
+    .welcome-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), #38bdf8);
+      border-radius: 10px;
+      transition: width 5s linear;
+    }
+    
+    @keyframes logoPulse {
+      0% { transform: scale(0.9); opacity: 0.35; }
+      100% { transform: scale(1.15); opacity: 0.6; }
+    }
+    
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
   </style>
 
 </head>
 
 <body>
+
+  <!-- WELCOME SPLASH SCREEN -->
+  <div id="welcomeScreen" class="welcome-screen">
+    <div class="welcome-content">
+      <div class="welcome-logo-container">
+        <div class="welcome-logo-glow"></div>
+        <div class="welcome-logo-icon">
+          <i class="ti ti-activity"></i>
+        </div>
+      </div>
+      <div id="welcomeTextContainer" class="welcome-text-container"></div>
+      <div class="welcome-progress-wrap">
+        <div id="welcomeProgressBar" class="welcome-progress-bar"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- SVG ICON DEFINITIONS -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
@@ -3701,6 +3951,17 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
         <p>اختر كيف تشعر أو صف حالتك — سنقترح أفضل الأطعمة والمشروبات والعادات للتعافي.</p>
       </div>
 
+      <!-- Active Health Context Display -->
+      <div id="foodUserContextBar" class="food-user-context-bar" style="display:none;">
+        <span class="context-item"><i class="ti ti-user"></i> <span id="fucUser"></span></span>
+        <span class="context-divider">|</span>
+        <span class="context-item"><i class="ti ti-scale"></i> مؤشر كتلة الجسم: <span id="fucBmi"></span></span>
+        <span class="context-divider">|</span>
+        <span class="context-item"><i class="ti ti-pill"></i> الأدوية: <span id="fucMeds"></span></span>
+        <span class="context-divider">|</span>
+        <span class="context-item"><i class="ti ti-lungs"></i> التنفس: <span id="fucBreath"></span></span>
+      </div>
+
       <div>
         <p class="mood-section-label">كيف تشعر الآن؟</p>
         <div class="mood-chips" id="moodChips">
@@ -3745,11 +4006,29 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       <div id="foodResults" style="display:none;">
         <div class="food-results-header">
           <span class="food-condition-badge" id="foodConditionBadge"></span>
-          <h3>التوصيات الغذائية</h3>
+          <h3>التوصيات الغذائية المخصصة</h3>
         </div>
+
+        <!-- Clinical Analysis Card -->
+        <div id="foodAnalysisCard" class="food-analysis-card" style="display:none;">
+          <div class="fac-header">
+            <i class="ti ti-activity fac-icon"></i>
+            <span class="fac-title">التحليل السريري لحالتك</span>
+          </div>
+          <p id="foodAnalysisText" class="fac-text"></p>
+        </div>
+
+        <!-- Drug-Food Warnings Callout -->
+        <div id="foodWarningsCard" class="food-warnings-card" style="display:none;">
+          <div class="fwc-header">
+            <i class="ti ti-alert-triangle fwc-icon"></i>
+            <span class="fwc-title">تحذيرات هامة (تفاعل دواء - طعام)</span>
+          </div>
+          <ul id="foodWarningsList" class="fwc-list"></ul>
+        </div>
+
         <div class="food-cards" id="foodCards"></div>
-        <button class="btn btn-secondary" id="foodResetBtn" style="margin-top:1rem;width:100%;">↩ الحصول على توصيات
-          جديدة</button>
+        <button class="btn btn-secondary" id="foodResetBtn" style="margin-top:1rem;width:100%;">↩ الحصول على توصيات جديدة</button>
       </div>
 
       <div id="foodError" style="display:none;" class="food-error">
@@ -4275,6 +4554,46 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
      ================================================================ -->
   <script>
     /* ================================================================
+       WELCOME SCREEN ANIMATION
+       ================================================================ */
+    function startWelcomeAnimation() {
+      const text = "أهلاً بك في طبيبك ✨ نتمنى لك الشفاء العاجل ❤️🩺";
+      const container = document.getElementById('welcomeTextContainer');
+      if (!container) return;
+      
+      const words = text.split(" ");
+      container.innerHTML = words.map(w => {
+        const isHighlight = w.includes("طبيبك") || w.includes("الشفاء");
+        const cls = isHighlight ? "welcome-word welcome-word-highlight" : "welcome-word";
+        return `<span class="${cls}">${w}</span>`;
+      }).join(" ");
+      
+      setTimeout(() => {
+        const bar = document.getElementById('welcomeProgressBar');
+        if (bar) bar.style.width = '100%';
+      }, 50);
+
+      const wordSpans = container.querySelectorAll('.welcome-word');
+      wordSpans.forEach((span, idx) => {
+        setTimeout(() => {
+          span.classList.add('visible');
+        }, idx * 250 + 100);
+      });
+
+      setTimeout(() => {
+        const welcome = document.getElementById('welcomeScreen');
+        if (welcome) {
+          welcome.classList.add('fade-out');
+          setTimeout(() => {
+            welcome.remove();
+          }, 800);
+        }
+      }, 5000);
+    }
+
+    startWelcomeAnimation();
+
+    /* ================================================================
        STATE
        ================================================================ */
     const API_BASE = window.location.origin;
@@ -4319,9 +4638,10 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
         muted: false,
       },
       food: {
-        apiKey: 'YOUR_CLAUDE_API_KEY_HERE', // ← ضع مفتاح Claude API هنا مرة واحدة
+        apiKey: '', // loaded from backend config dynamically to prevent git leaks
         selectedMood: '',
       },
+      bmi: null,
       meds: {
         list: [],
         taken: {},
@@ -4374,6 +4694,84 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       } catch (e) { }
     }
 
+    function updateFoodContextBar() {
+      const bar = document.getElementById('foodUserContextBar');
+      if (!bar) return;
+      
+      const user = STATE.currentUser;
+      const bmi = STATE.bmi;
+      const medsCount = STATE.meds?.list?.length || 0;
+      const breath = STATE.breathing?.breathResult;
+      
+      if (!user && !bmi && medsCount === 0 && !breath) {
+        bar.style.display = 'none';
+        return;
+      }
+      
+      bar.style.display = 'flex';
+      
+      // User Profile
+      const uEl = document.getElementById('fucUser');
+      if (user) {
+        let txt = user.name || 'مريض';
+        if (user.age) txt += ` (${user.age} سنة)`;
+        uEl.textContent = txt;
+        uEl.parentElement.style.display = '';
+      } else {
+        uEl.parentElement.style.display = 'none';
+      }
+      
+      // BMI
+      const bmiEl = document.getElementById('fucBmi');
+      if (bmi) {
+        bmiEl.textContent = `${bmi.value} (${bmi.category})`;
+        bmiEl.parentElement.style.display = '';
+      } else {
+        bmiEl.parentElement.style.display = 'none';
+      }
+      
+      // Meds
+      const medsEl = document.getElementById('fucMeds');
+      if (medsCount > 0) {
+        medsEl.textContent = `${medsCount} أدوية نشطة`;
+        medsEl.parentElement.style.display = '';
+      } else {
+        medsEl.parentElement.style.display = 'none';
+      }
+      
+      // Breathing Test
+      const breathEl = document.getElementById('fucBreath');
+      if (breath) {
+        breathEl.textContent = `${breath.score}/10 (${breath.title})`;
+        breathEl.parentElement.style.display = '';
+      } else {
+        breathEl.parentElement.style.display = 'none';
+      }
+      
+      // Hide dividers if necessary
+      const children = Array.from(bar.children);
+      children.forEach((child) => {
+        if (child.classList.contains('context-divider')) {
+          child.style.display = 'none'; // reset
+        }
+      });
+      
+      // Set correct visible dividers
+      let visibleItems = children.filter(c => !c.classList.contains('context-divider') && c.style.display !== 'none');
+      children.forEach(c => {
+        if (c.classList.contains('context-divider')) {
+          const prev = c.previousElementSibling;
+          const next = c.nextElementSibling;
+          if (prev && prev.style.display !== 'none' && next && next.style.display !== 'none') {
+            const followingVisible = visibleItems.filter(item => children.indexOf(item) > children.indexOf(c));
+            if (followingVisible.length > 0) {
+              c.style.display = '';
+            }
+          }
+        }
+      });
+    }
+
     /* ================================================================
        NAVIGATION
        ================================================================ */
@@ -4407,6 +4805,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       if (tabId === 'history') refreshHistoryScreen();
       if (tabId === 'profile') refreshProfileScreen();
       if (tabId === 'pharmacist') refreshPharmacistScreen();
+      if (tabId === 'food') updateFoodContextBar();
       if (tabId === 'meds') {
         renderMedsScreen();
         refreshNotifSettingsUi();
@@ -4438,6 +4837,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
        BREATHING AUDIO MODULE
        ================================================================ */
     let audioCtx = null;
+    let activeUtterance = null; // Keeps a reference to prevent garbage collection in Chrome
 
     function getAudioCtx() {
       if (!audioCtx) {
@@ -4446,11 +4846,23 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       return audioCtx;
     }
 
+    // Warm up the AudioContext on user gesture
+    function warmUpAudio() {
+      try {
+        const ctx = getAudioCtx();
+        if (ctx.state === 'suspended') {
+          ctx.resume();
+        }
+      } catch (e) {}
+    }
+
     function playChime(freq = 528, duration = 1.2) {
       if (STATE.breathing.muted) return;
       try {
         const ctx = getAudioCtx();
+        // Fallback resume just in case, though it should be warmed up
         if (ctx.state === 'suspended') ctx.resume();
+        
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain);
@@ -4469,16 +4881,27 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       if (STATE.breathing.muted) return;
       if ('speechSynthesis' in window) {
         try {
+          // Chrome speech synthesis freeze fix
           speechSynthesis.cancel();
+          if (speechSynthesis.paused) {
+            speechSynthesis.resume();
+          }
+          
           const utt = new SpeechSynthesisUtterance(text);
-          utt.rate = 0.82;
-          utt.pitch = 0.95;
-          utt.volume = 1;
+          activeUtterance = utt; // prevent GC bug
+          
+          utt.rate = 0.85;
+          utt.pitch = 1.0;
+          utt.volume = 1.0;
+          
           const voices = speechSynthesis.getVoices();
-          const preferred = voices.find(v =>
-            v.lang.startsWith('ar') || v.lang.startsWith('en')
-          );
+          const preferred = voices.find(v => v.lang.startsWith('ar')) || 
+                            voices.find(v => v.lang.startsWith('en'));
           if (preferred) utt.voice = preferred;
+          
+          utt.onend = () => { activeUtterance = null; };
+          utt.onerror = () => { activeUtterance = null; };
+          
           speechSynthesis.speak(utt);
         } catch (e) { }
       }
@@ -5375,6 +5798,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
     ];
 
     document.getElementById('startBreathingBtn').addEventListener('click', () => {
+      warmUpAudio();
       STATE.breathing = { cycle: 0, totalCycles: 3, scores: [], timerHandle: null, phase: 'ready', breathResult: null, muted: STATE.breathing.muted };
       showTab('breathing');
       document.getElementById('difficultyPanel').style.display = 'none';
@@ -5386,6 +5810,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
     });
 
     document.getElementById('breathStartBtn').addEventListener('click', () => {
+      warmUpAudio();
       document.getElementById('breathStartWrap').style.display = 'none';
       document.getElementById('circleWrapperEl').style.display = '';
       speakPhase('تقييم التنفس. استعد.');
@@ -5484,6 +5909,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
     });
 
     document.getElementById('breathRestartBtn').addEventListener('click', () => {
+      warmUpAudio();
       STATE.breathing = { cycle: 0, totalCycles: 3, scores: [], timerHandle: null, phase: 'ready', breathResult: null, muted: STATE.breathing.muted };
       document.getElementById('difficultyPanel').style.display = 'none';
       document.getElementById('breathResults').style.display = 'none';
@@ -5558,6 +5984,19 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       setTimeout(() => { document.getElementById('gaugePointer').style.left = `${rtlPct}%`; }, 100);
       const tips = buildBMITips(bmi, age, gender);
       document.getElementById('tipsList').innerHTML = tips.map(t => `<li>${t}</li>`).join('');
+      
+      // Save BMI result to STATE and localStorage
+      STATE.bmi = {
+        value: target,
+        category: cat,
+        class: catClass,
+        age: age,
+        gender: gender === 'male' || gender === 'ذكور' || gender === 'ذكر' ? 'ذكر' : 'أنثى'
+      };
+      try {
+        localStorage.setItem('tabibak_bmi', JSON.stringify(STATE.bmi));
+      } catch (e) { }
+
       card.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -5644,28 +6083,230 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       },
     };
 
-    async function getFoodRecsFromAI(mood, apiKey) {
-      const prompt = `أنت أخصائي تغذية سريرية. يُفيد المريض بـ: "${mood}". قدّم توجيهاً غذائياً بهذا التنسيق JSON بالضبط (بدون markdown أو نص إضافي):\n{"badge":"تسمية قصيرة للحالة","cards":[{"icon":"emoji","title":"تناوَل","items":["عنصر1","عنصر2","عنصر3","عنصر4","عنصر5"]},{"icon":"emoji","title":"اشرب","items":["عنصر1","عنصر2","عنصر3","عنصر4"]},{"icon":"emoji","title":"تجنَّب","items":["عنصر1","عنصر2","عنصر3","عنصر4"]},{"icon":"emoji","title":"نصائح","items":["نصيحة1","نصيحة2","نصيحة3","نصيحة4"]}]}`;
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 800, messages: [{ role: 'user', content: prompt }] }),
-      });
-      if (!res.ok) throw new Error(`API ${res.status}`);
-      const data = await res.json();
-      const raw = data.content[0].text.replace(/```json|```/g, '').trim();
-      return JSON.parse(raw);
+
+const GROQ_API_KEY = ''; // loaded dynamically from backend config to prevent git leaks
+
+
+async function getFoodRecsFromAI(mood, apiKey) {
+ 
+  // ── 1. Build user health context from STATE ──────────────
+  const user = STATE.currentUser;
+  let userContext = '';
+ 
+  if (user) {
+    userContext += '\n\n👤 معلومات المريض الشخصية والتاريخ الطبي:';
+    if (user.name)    userContext += `\n- الاسم: ${user.name}`;
+    if (user.age)     userContext += `\n- العمر: ${user.age} سنة`;
+    if (user.gender)  userContext += `\n- الجنس: ${user.gender === 'male' || user.gender === 'ذكور' || user.gender === 'ذكر' ? 'ذكر' : 'أنثى'}`;
+    if (user.history) userContext += `\n- التاريخ المرضي والأمراض المزمنة أو الحساسية: ${user.history}`;
+  }
+ 
+  // Add BMI Context if available
+  if (STATE.bmi) {
+    userContext += `\n- مؤشر كتلة الجسم الحالي (BMI): ${STATE.bmi.value} (التصنيف: ${STATE.bmi.category})`;
+  }
+
+  // Add Breathing Test Context if available
+  if (STATE.breathing?.breathResult) {
+    const br = STATE.breathing.breathResult;
+    userContext += `\n- نتيجة اختبار التنفس الأخير: ${br.title} (الدرجة: ${br.score}/10، التوصية: ${br.desc})`;
+  }
+
+  // Active Medications
+  if (STATE.meds?.list?.length > 0) {
+    userContext += '\n\n💊 الأدوية الحالية التي يتناولها المريض (تنبيه: تحقق من التفاعلات بين الدواء والغذاء والتعارضات):';
+    STATE.meds.list.forEach(m => {
+      userContext += `\n- ${m.name} ${m.dose || ''} (${m.form || ''}) — إرشادات الطعام: ${m.food || 'غير محدد'}`;
+      if (m.note) userContext += ` — ملاحظة إضافية: ${m.note}`;
+    });
+  }
+ 
+  // Past symptoms/sessions history
+  if (STATE.sessions?.length > 0) {
+    userContext += '\n\n🩺 السجل الطبي للجلسات السابقة وأعراض المريض الأخيرة:';
+    // Summary of up to 3 past sessions to identify patterns
+    const pastSessions = STATE.sessions.slice(0, 3).map(parseSession);
+    pastSessions.forEach((s, idx) => {
+      userContext += `\nجلسة ${idx + 1}:`;
+      if (s.createdAt)  userContext += ` التاريخ: ${new Date(s.createdAt).toLocaleDateString('ar-EG')}`;
+      if (s.condition)  userContext += ` | التشخيص المقدر: ${s.condition}`;
+      if (s.symptom)    userContext += ` | الأعراض المذكورة: ${s.symptom}`;
+      if (s.desc)       userContext += ` | الوصف الطبي: ${s.desc}`;
+    });
+  }
+ 
+  // ── 2. Build the personalized prompt ─────────────────────
+  const hasContext = userContext.length > 0;
+ 
+  const prompt = `أنت أخصائي تغذية سريرية خبير واستشاري تغذية علاجية. مهمتك هي إعداد خطة غذائية علاجية مخصصة واحترافية للمريض بناءً على حالته الصحية الكاملة، الشكوى الحالية، تاريخه المرضي، مؤشر كتلة جسمه، الأدوية التي يتناولها، ونتائج فحوصاته.
+
+بيانات المريض الحالية المتاحة:
+${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة للملف الشخصي.'}
+
+الشكوى الحالية / السبب في طلب الاستشارة الغذائية: "${mood}"
+
+التعليمات الطبية والغذائية الصارمة:
+1. **التعارضات الدوائية الغذائية**: قم بتحليل الأدوية الحالية للمريض بجدية. ابحث عن أي تداخلات أو تعارضات دوائية-غذائية معروفة علمياً (مثل: تعارض الكالسيوم/الزبادي مع المضادات الحيوية، تعارض البوتاسيوم/الموز مع أدوية الضغط كحاصرات مستقبلات الأنجيوتنسين ومثبطات الإنزيم المحول للأنجيوتنسين، تعارض الورفارين مع الأوراق الخضراء الغنية بفيتامين K، تعارض الجريب فروت مع الستاتينات، إلخ). اكتب تحذيراً صريحاً ومفصلاً في قائمة "drugWarnings".
+2. **التاريخ المرضي والوزن**: صمم التوصيات لتناسب عمر وجنس المريض، ومؤشر كتلة جسمه (سواء كان يعاني من نحافة، وزن طبيعي، زيادة وزن، أو سمنة)، وتاريخه المرضي (إذا كان مريض سكري، ضغط، قولون عصبي، إلخ).
+3. **أطعمة ومشروبات مستحبة**: اقترح أطعمة ومشروبات دقيقة وفعالة لتخفيف الشكوى الحالية مع ذكر السبب العلمي لكل عنصر بلغة طبية مبسطة في حقل "reason".
+4. **أطعمة ومشروبات للتجنب**: اذكر بدقة ما يجب تجنبه لتفادي تدهور الشكوى الحالية أو لتفادي التعارض مع تاريخه المرضي أو أدويته.
+5. **التحليل السريري المكتوب (analysis)**: اكتب تقريراً تحليلياً سريرياً موجزاً وبليغاً (من 3 إلى 4 جمل باللغة العربية الفصحى) يوضح الحالة ويبرر الخطة الغذائية المقترحة بناءً على الربط العلمي بين الأعراض الحالية والتاريخ الدوائي والمرضي للمريض.
+6. **البيئة الجغرافية**: التوصيات يجب أن تكون عملية وقابلة للتطبيق بمكونات شائعة وسهلة المنال في المطبخ العربي والمصري.
+
+يجب أن تكون الاستجابة بصيغة JSON صالحة 100% ومغلقة بالكامل، دون أي نصوص تمهيدية أو ختامية أو علامات markdown (لا تستخدم \`\`\`json).
+
+التنسيق المطلوب للاستجابة هو هيكل JSON التالي بالضبط:
+{
+  "badge": "عنوان احترافي قصير للخطة الغذائية (مثال: حمية خافضة للضغط ومهدئة للمعدة)",
+  "analysis": "التحليل السريري للمستشار الغذائي لربط الشكوى بالتاريخ المرضي والدوائي والوزن...",
+  "drugWarnings": [
+    "تحذير تفصيلي 1 بخصوص الأدوية الحالية وتفاعلها مع الأطعمة (أو اكتب 'لا توجد تعارضات دوائية غذائية معروفة للأدوية المذكورة' في حال عدم وجودها)"
+  ],
+  "cards": [
+    {
+      "icon": "🥦",
+      "title": "أطعمة مستحبة",
+      "items": [
+        {"name": "اسم الطعام 1", "reason": "السبب العلمي الطبي الدقيق لاختياره في حالتك"},
+        {"name": "اسم الطعام 2", "reason": "السبب العلمي الطبي الدقيق لاختياره في حالتك"},
+        {"name": "اسم الطعام 3", "reason": "السبب العلمي الطبي الدقيق لاختياره في حالتك"},
+        {"name": "اسم الطعام 4", "reason": "السبب العلمي الطبي الدقيق لاختياره في حالتك"}
+      ]
+    },
+    {
+      "icon": "🥛",
+      "title": "مشروبات وسوائل مستحبة",
+      "items": [
+        {"name": "المشروب 1", "reason": "السبب العلمي لاختياره وكيفية تناوله لتهدئة الأعراض"},
+        {"name": "المشروب 2", "reason": "السبب العلمي لاختياره وكيفية تناوله لتهدئة الأعراض"},
+        {"name": "المشروب 3", "reason": "السبب العلمي لاختياره وكيفية تناوله لتهدئة الأعراض"}
+      ]
+    },
+    {
+      "icon": "🚫",
+      "title": "تجنَّب تماماً",
+      "items": [
+        {"name": "الطعام/المشروب الممنوع 1", "reason": "لماذا يتعارض مع حالتك أو مع أدويتك/تاريخك المرضي"},
+        {"name": "الطعام/المشروب الممنوع 2", "reason": "لماذا يتعارض مع حالتك أو مع أدويتك/تاريخك المرضي"},
+        {"name": "الطعام/المشروب الممنوع 3", "reason": "لماذا يتعارض مع حالتك أو مع أدويتك/تاريخك المرضي"}
+      ]
+    },
+    {
+      "icon": "💡",
+      "title": "نصائح نمط الحياة والتغذية العلاجية",
+      "items": [
+        {"name": "النصيحة 1", "reason": "توجيه سلوكي أو غذائي خاص بطريقة تناول الطعام والنشاط المناسبين لكتلة جسمك وحالتك الصحية"},
+        {"name": "النصيحة 2", "reason": "توجيه سلوكي أو غذائي خاص بطريقة تناول الطعام والنشاط المناسبين لكتلة جسمك وحالتك الصحية"},
+        {"name": "النصيحة 3", "reason": "توجيه سلوكي أو غذائي خاص بطريقة تناول الطعام والنشاط المناسبين لكتلة جسمك وحالتك الصحية"}
+      ]
     }
+  ]
+}`;
+ 
+  // ── 3. Call Groq API — works directly from the browser ───
+  //       No proxy needed. CORS is fully supported by Groq.
+  const keyToUse = apiKey || GROQ_API_KEY;
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${keyToUse}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile', // best free model on Groq
+      temperature: 0.4,
+      max_tokens: 1000,
+      response_format: { type: 'json_object' }, // forces valid JSON — no markdown wrapping
+      messages: [
+        {
+          role: 'system',
+          content: 'أنت أخصائي تغذية سريرية. أجب دائماً بـ JSON فقط بدون أي نص خارجه.',
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+    }),
+  });
+ 
+  // ── 4. Handle errors clearly ──────────────────────────────
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = err.error?.message || 'فشل الاتصال';
+ 
+    // Friendly Arabic error messages for common cases
+    if (res.status === 401) throw new Error('مفتاح Groq غير صحيح — تحقق من GROQ_API_KEY في الكود');
+    if (res.status === 429) throw new Error('تجاوزت الحد المسموح به — انتظر دقيقة وحاول مجدداً');
+    if (res.status === 503) throw new Error('خدمة Groq غير متاحة مؤقتاً — حاول بعد قليل');
+    throw new Error(`Groq ${res.status}: ${msg}`);
+  }
+ 
+  // ── 5. Parse the response ─────────────────────────────────
+  const data = await res.json();
+  const raw  = data.choices?.[0]?.message?.content;
+ 
+  if (!raw) throw new Error('لم يرد Groq بأي محتوى');
+ 
+  // Strip any accidental markdown fences just in case
+  const clean = raw.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
 
     function renderFoodCards(data) {
       document.getElementById('foodConditionBadge').textContent = data.badge;
-      document.getElementById('foodCards').innerHTML = data.cards.map(card => `
-      <div class="food-card">
-        <span class="food-card-icon">${card.icon}</span>
-        <span class="food-card-title">${card.title}</span>
-        <ul class="food-card-items">${card.items.map(i => `<li>${i}</li>`).join('')}</ul>
-      </div>
-    `).join('');
+
+      // Render clinical analysis if it exists
+      const analysisCard = document.getElementById('foodAnalysisCard');
+      const analysisText = document.getElementById('foodAnalysisText');
+      if (data.analysis) {
+        analysisText.textContent = data.analysis;
+        analysisCard.style.display = '';
+      } else {
+        analysisCard.style.display = 'none';
+      }
+
+      // Render drug warnings if they exist and contain active warnings
+      const warningsCard = document.getElementById('foodWarningsCard');
+      const warningsList = document.getElementById('foodWarningsList');
+      const hasWarnings = data.drugWarnings && data.drugWarnings.length > 0 && 
+                          !data.drugWarnings.every(w => w.includes('لا توجد') || w.toLowerCase().includes('no known') || w.toLowerCase().includes('no interactions'));
+      if (hasWarnings && STATE.meds?.list?.length > 0) {
+        warningsList.innerHTML = data.drugWarnings.map(w => `<li>${w}</li>`).join('');
+        warningsCard.style.display = '';
+      } else {
+        warningsCard.style.display = 'none';
+      }
+
+      // Render cards
+      document.getElementById('foodCards').innerHTML = data.cards.map(card => {
+        let iconHtml = card.icon;
+        if (!iconHtml.includes('<')) {
+          iconHtml = `<span>${card.icon}</span>`;
+        }
+
+        return `
+          <div class="food-card">
+            <span class="food-card-icon">${iconHtml}</span>
+            <span class="food-card-title">${card.title}</span>
+            <ul class="food-card-items">
+              ${card.items.map(item => {
+                const name = typeof item === 'object' ? item.name : item;
+                const reason = typeof item === 'object' ? item.reason : '';
+                return `
+                  <li>
+                    <div class="food-item-wrapper">
+                      <span class="food-item-name">${name}</span>
+                      ${reason ? `<span class="food-item-reason">${reason}</span>` : ''}
+                    </div>
+                  </li>
+                `;
+              }).join('')}
+            </ul>
+          </div>
+        `;
+      }).join('');
+
       document.getElementById('foodResults').style.display = '';
     }
 
@@ -6170,9 +6811,29 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
        INIT
        ================================================================ */
     loadLocalMedsTaken();
+    
+    // Load stored BMI if any
+    try {
+      const storedBmi = localStorage.getItem('tabibak_bmi');
+      if (storedBmi) {
+        STATE.bmi = JSON.parse(storedBmi);
+      }
+    } catch (e) {}
 
     (async () => {
       await loadProfile();
+
+      // Load Groq API Key from server dynamically to keep it out of source control
+      try {
+        const res = await fetch('/api/config/groq-key');
+        const data = await res.json();
+        if (data.key) {
+          STATE.food.apiKey = data.key;
+        }
+      } catch (e) {
+        console.error("Failed to load Groq API key from server", e);
+      }
+
       refreshProfileScreen();
       refreshHistoryScreen();
       if (STATE.meds.list.length === 0) renderMedsScreen();

@@ -56,6 +56,11 @@ app.use('/api/notifications', authenticateToken, notificationRoutes);
 app.use('/api/medications', authenticateToken, medicationRoutes);
 app.use('/api/sessions', authenticateToken, sessionRoutes);
 
+// Config routes to expose non-sensitive environment keys dynamically to client
+app.get('/api/config/groq-key', (req, res) => {
+  res.json({ key: process.env.GROQ_API_KEY || '' });
+});
+
 // Serve static frontend files
 app.use(express.static(__dirname));
 
