@@ -96,46 +96,71 @@
     }
 
     body.dark {
-      --bg-page: #0d1b2e;
-      --bg-surface: rgba(15, 30, 55, 0.82);
-      --border: rgba(99, 157, 219, 0.10);
+      /* --- The Base Canvas: True Obsidian (Clean, deep, non-muddy) --- */
+      --bg-page: #09090b;
+      /* True deep canvas; eliminates glare entirely */
+      --bg-surface: #18181b;
+      /* Crisp, solid charcoal for dashboard cards and containers */
+      --border: #27272a;
+      /* Ultra-subtle, sharp border instead of messy transparencies */
 
-      --primary: #63b3ed;
-      --primary-glow: rgba(99, 179, 237, 0.10);
-      --secondary: #90cdf4;
-      --secondary-glow: rgba(144, 205, 244, 0.08);
-      --btn-text: #0d1b2e;
+      /* --- Brand Accents: Surgical & Precise --- */
+      --primary: #2f7afb;
+      /* Vibrant, intentional clinical blue with excellent legibility */
+      --primary-glow: rgba(47, 122, 251, 0.08);
+      --secondary: #38a3ff;
+      /* Lighter, related blue — keeps gradients cohesive instead of fading to gray */
+      --secondary-glow: rgba(56, 163, 255, 0.10);
+      --btn-text: #ffffff;
+      /* Pure white text for solid primary buttons */
 
-      --text-1: #eef3fa;
-      --text-2: #90aec8;
-      --text-muted: #5a7a96;
+      /* --- Typography: High-Contrast Reading (Zero eye strain) --- */
+      --text-1: #f4f4f5;
+      /* Off-white for crisp, readable headings */
+      --text-2: #a1a1aa;
+      /* Clear zinc-gray for body paragraphs and descriptions */
+      --text-muted: #71717a;
+      /* Soft matte gray for timestamps, secondary labels, and footers */
 
-      --input-bg: rgba(255, 255, 255, 0.04);
-      --input-focus: rgba(255, 255, 255, 0.08);
+      /* --- Form Fields --- */
+      --input-bg: #09090b;
+      /* Sunken input fields that match the base canvas for depth */
+      --input-focus: #27272a;
+      /* Clean highlight when clicking fields */
 
-      --bubble-bot: rgba(255, 255, 255, 0.04);
-      --bubble-user: rgba(99, 179, 237, 0.09);
-      --bubble-user-b: rgba(99, 179, 237, 0.22);
+      /* --- Chat Interface (Tabibak Assistant) --- */
+      --bubble-bot: #27272a;
+      /* Clean neutral bubble for the medical bot */
+      --bubble-user: #2f7afb;
+      /* Sharp, clear signature blue for the user's messages */
+      --bubble-user-b: transparent;
 
-      --shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.25);
+      /* --- Depth & Lighting (The human touch) --- */
+      /* Combines a tiny 1px white rim highlight with a deep drop shadow to create real physical elevation */
+      --shadow: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 8px 32px rgba(0, 0, 0, 0.5);
 
-      --red: #fc8181;
-      --red-bg: rgba(229, 62, 62, 0.14);
-      --red-border: rgba(229, 62, 62, 0.24);
-      --orange: #f6ad55;
-      --orange-bg: rgba(221, 107, 32, 0.12);
-      --orange-border: rgba(221, 107, 32, 0.24);
-      --green: #68d391;
-      --green-bg: rgba(72, 187, 120, 0.10);
-      --green-border: rgba(72, 187, 120, 0.20);
+      /* --- Status Indicators: Pure & Clinical (Not washed out) --- */
+      --red: #ef4444;
+      --red-bg: rgba(239, 68, 68, 0.06);
+      --red-border: rgba(239, 68, 68, 0.15);
 
-      --med-bg: rgba(15, 30, 55, 0.82);
-      --med-card-bg: rgba(255, 255, 255, 0.04);
-      --med-border: rgba(99, 179, 237, 0.13);
-      --med-taken: rgba(99, 179, 237, 0.06);
-      --med-streak: #f6ad55;
-      --med-missed: #fc8181;
-      --med-check: #68d391;
+      --orange: #f59e0b;
+      --orange-bg: rgba(245, 158, 11, 0.05);
+      --orange-border: rgba(245, 158, 11, 0.15);
+
+      --green: #10b981;
+      --green-bg: rgba(16, 185, 129, 0.06);
+      --green-border: rgba(16, 185, 129, 0.15);
+
+      /* --- Medical Dashboard & Medication Tracker --- */
+      --med-bg: #18181b;
+      --med-card-bg: #202024;
+      /* Slightly lifted contrast for treatment/prescription cards */
+      --med-border: #27272a;
+      --med-taken: rgba(47, 122, 251, 0.08);
+      --med-streak: #f59e0b;
+      --med-missed: #ef4444;
+      --med-check: #10b981;
     }
 
     *,
@@ -172,14 +197,17 @@
     a {
       color: inherit;
     }
+
     .moon {
       color: #ffffff;
       filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
     }
+
     .sun {
       color: #FFC107;
       filter: drop-shadow(0 0 4px rgba(255, 193, 7, 0.5));
     }
+
     /* ============================================================
        LAYOUT
        ============================================================ */
@@ -417,9 +445,9 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      background: var(--primary);
       color: var(--btn-text);
-      box-shadow: 0 4px 15px var(--primary-glow);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
 
     .btn-primary:hover {
@@ -496,9 +524,9 @@
       width: 100%;
       padding: 0.875rem 1.5rem;
       border-radius: var(--radius);
-      border: 1.5px solid rgba(14, 165, 233, 0.3);
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(13, 148, 136, 0.08));
-      color: var(--secondary);
+      border: 1.5px solid var(--border);
+      background: var(--input-bg);
+      color: var(--primary);
       font-family: var(--font-body);
       font-size: 0.95rem;
       font-weight: 500;
@@ -511,8 +539,8 @@
     }
 
     .btn-breathing:hover {
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(13, 148, 136, 0.18));
-      border-color: rgba(14, 165, 233, 0.6);
+      background: var(--primary-glow);
+      border-color: var(--primary);
       transform: translateY(-2px);
     }
 
@@ -749,6 +777,42 @@
       font-weight: 500;
       color: var(--primary);
       margin-top: 0.75rem;
+    }
+
+    .breath-start-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 0;
+    }
+
+    .breath-start-btn {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      cursor: pointer;
+      box-shadow: 0 8px 30px var(--primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      transition: all 0.25s ease;
+    }
+
+    .breath-start-btn:hover {
+      transform: scale(1.06);
+      filter: brightness(1.05);
+    }
+
+    .breath-start-btn:active {
+      transform: scale(0.98);
+    }
+
+    .breath-start-btn i {
+      margin-right: -4px;
     }
 
     .circle-wrapper {
@@ -1473,7 +1537,7 @@
     .gauge-track {
       position: relative;
       height: 14px;
-      background: linear-gradient(90deg, var(--secondary) 0%, var(--green) 30%, var(--orange) 65%, var(--red) 100%);
+      background: linear-gradient(90deg, var(--red) 0%, var(--orange) 35%, var(--green) 70%, var(--secondary) 100%);
       border-radius: 7px;
       overflow: visible;
       margin-bottom: 0.5rem;
@@ -1489,7 +1553,7 @@
       border: 3px solid var(--text-1);
       transform: translateX(-50%);
       transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      +
     }
 
     .gauge-labels {
@@ -2247,10 +2311,21 @@
       color: var(--text-muted);
     }
 
-    .ti-sunrise { color: #ff9800; }
-    .ti-sun { color: #ffc107; }
-    .ti-moon { color: #6b7280; }
-    .dark .ti-moon { color: #ffffff; }
+    .ti-sunrise {
+      color: #ff9800;
+    }
+
+    .ti-sun {
+      color: #ffc107;
+    }
+
+    .ti-moon {
+      color: #6b7280;
+    }
+
+    .dark .ti-moon {
+      color: #ffffff;
+    }
 
     /* ============================================================
        ADD MEDICATION MODAL (bottom sheet)
@@ -2283,6 +2358,37 @@
       animation: slideUp 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.15);
       max-height: 92vh;
       overflow-y: auto;
+      position: relative;
+    }
+
+    .editable-time-badge {
+      position: absolute;
+      top: 1.5rem;
+      left: 1.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--primary-glow);
+      border: 1px solid rgba(47, 122, 251, 0.25);
+      color: var(--primary);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .editable-time-badge i {
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 768px) {
+      .editable-time-badge {
+        top: 1.25rem;
+        left: 1.25rem;
+        font-size: 0.68rem;
+        padding: 0.25rem 0.6rem;
+      }
     }
 
     .meds-modal h3 {
@@ -3096,7 +3202,8 @@
       <line x1="7" y1="18" x2="17" y2="18" />
     </symbol>
     <symbol id="icon-bmi" viewBox="0 0 512 512">
-  <path fill="currentColor" stroke="currentColor" stroke-width="10" d="M511.814,273.543c0.068-0.202,0.135-0.388,0.186-0.59h-0.448L428.664,82.365c0,0,0,0,0.017,0
+      <path fill="currentColor" stroke="currentColor" stroke-width="10"
+        d="M511.814,273.543c0.068-0.202,0.135-0.388,0.186-0.59h-0.448L428.664,82.365c0,0,0,0,0.017,0
     c10.713,0.794,19.604,1.536,26.129,2.17l1.672-17.924c-26.965-2.491-91.989-7.269-162.399-8.688
     c-1.342-8.188-5.242-15.584-10.848-21.19c-6.94-6.957-16.623-11.279-27.235-11.279c-10.613,0-20.321,4.322-27.26,11.279
     c-5.598,5.605-9.507,13.001-10.824,21.19C147.498,59.342,82.44,64.12,55.492,66.611l1.672,17.924
@@ -3118,8 +3225,8 @@
     c4.204-4.204,7.497-8.898,10.105-13.533c3.909-6.949,6.349-13.77,7.86-18.937c0.135-0.48,0.262-0.928,0.388-1.401
     c1.504,0,3.2,0.017,5.066,0.017c7.421-0.017,17.425-0.017,27.834-0.017C269.035,419.26,281.428,419.26,288.883,419.26z
     M272.936,75.636c-0.735,1.047-1.528,2.009-2.423,2.904c-3.723,3.724-8.814,6.011-14.512,6.011
-c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3.31-3.605-7.295-3.605-11.651 c0-2.229,0.338-4.339,1.006-6.332c0.996-3.107,2.743-5.91,5.006-8.206c3.748-3.715,8.838-6.011,14.546-6.011 c5.699,0,10.789,2.296,14.512,6.011c2.288,2.296,4.036,5.099,5.04,8.206c0.667,1.993,0.996,4.103,0.996,6.332 C276.548,68.341,275.214,72.327,272.936,75.636z M417.858,327.372c-28.823,0-55.366-15.315-70.317-39.004H488.15 C473.232,312.057,446.689,327.372,417.858,327.372z M340.964,272.953l76.894-176.793l76.886,176.793H340.964z"/>
-</symbol>
+c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3.31-3.605-7.295-3.605-11.651 c0-2.229,0.338-4.339,1.006-6.332c0.996-3.107,2.743-5.91,5.006-8.206c3.748-3.715,8.838-6.011,14.546-6.011 c5.699,0,10.789,2.296,14.512,6.011c2.288,2.296,4.036,5.099,5.04,8.206c0.667,1.993,0.996,4.103,0.996,6.332 C276.548,68.341,275.214,72.327,272.936,75.636z M417.858,327.372c-28.823,0-55.366-15.315-70.317-39.004H488.15 C473.232,312.057,446.689,327.372,417.858,327.372z M340.964,272.953l76.894-176.793l76.886,176.793H340.964z" />
+    </symbol>
     <symbol id="icon-profile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
       stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="8" r="4" />
@@ -3139,85 +3246,76 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
     </symbol>
     <!-- Pharmacist icon: mortar & pestle with Rx -->
     <symbol id="icon-pharmacist" viewBox="0 0 950.341 950.341">
-  <path fill="currentColor" d="M570.737,97.94c120.7,0,204.601,115.9,190.4,230.5c-11.8,94.7-95.9,169.1-191.4,169.1h-113v110h113
+      <path fill="currentColor" d="M570.737,97.94c120.7,0,204.601,115.9,190.4,230.5c-11.8,94.7-95.9,169.1-191.4,169.1h-113v110h113
     c133.2,0,251.4-90.3,289.101-217.5c11.7-39.5,15.3-81.399,10.2-122.3c-3.4-27.3-10.5-54.1-21-79.5
     c-34.601-83.7-105-151.4-194.601-176.4c-66.899-18.6-139.8-15.3-204.5,10c-33.8,13.2-65.399,32.3-92.5,56.4
-    c-16.6,14.7-29.399,31.8-41.2,50.3h152.301C497.038,109.84,533.137,97.94,570.737,97.94z"/>
-  <path fill="currentColor" d="M332.737,460.641V627.04c24.9,6,56,14.5,90,26.2v-192.6c133.7-20.101,238.601-128.4,253.5-263.7
-    c2-17.7-12-33.2-29.8-33.2H441.038H303.437h-194.4c-17.9,0-31.8,15.5-29.8,33.2C94.137,332.24,198.937,440.54,332.737,460.641z"/>
-  <path fill="currentColor" d="M466.237,950.341c9.301,0,16.301-8.301,14.801-17.5c-4.4-26.2-18.5-49.101-38.5-64.9
+    c-16.6,14.7-29.399,31.8-41.2,50.3h152.301C497.038,109.84,533.137,97.94,570.737,97.94z" />
+      <path fill="currentColor"
+        d="M332.737,460.641V627.04c24.9,6,56,14.5,90,26.2v-192.6c133.7-20.101,238.601-128.4,253.5-263.7
+    c2-17.7-12-33.2-29.8-33.2H441.038H303.437h-194.4c-17.9,0-31.8,15.5-29.8,33.2C94.137,332.24,198.937,440.54,332.737,460.641z" />
+      <path fill="currentColor" d="M466.237,950.341c9.301,0,16.301-8.301,14.801-17.5c-4.4-26.2-18.5-49.101-38.5-64.9
     c-3.2-2.5-6.5-4.8-10-7c-3.2-2-6.601-3.8-10-5.5v-20.5c-31.7-13.2-63.4-20.4-90-28v48.5c-3.4,1.6-6.801,3.5-10,5.5
-    c-3.5,2.1-6.801,4.5-10,7c-20,15.8-34.101,38.7-38.5,64.9c-1.5,9.1,5.5,17.5,14.8,17.5H466.237z"/>
-  <path fill="currentColor" d="M297.538,608.24v-110.5c-72.101,2.9-114.9,62.5-114.9,135.3c0,46.4,24.9,90.9,64.4,115.2
+    c-3.5,2.1-6.801,4.5-10,7c-20,15.8-34.101,38.7-38.5,64.9c-1.5,9.1,5.5,17.5,14.8,17.5H466.237z" />
+      <path fill="currentColor" d="M297.538,608.24v-110.5c-72.101,2.9-114.9,62.5-114.9,135.3c0,46.4,24.9,90.9,64.4,115.2
     c19.2,11.9,40.9,16.5,62.5,21.9c0,0,0,0,0.1,0c97.8,24.5,197.2,65.7,274.3,131.8c10.4,8.9,23.101,13.3,35.8,13.3
     c15.5,0,30.9-6.5,41.801-19.2c1.3-1.5,2.399-3,3.5-4.6c1.8-2.6,3.3-5.3,4.6-8.1c0.4-0.9,0.8-1.9,1.2-2.801
     c0.899-2.199,1.6-4.5,2.2-6.699c5-19.601-1.101-41.2-17.5-55.301c-67.9-58.199-148.9-99.699-233-129.199
-    c-26.2-9.2-52.801-17.301-79.7-24.101c-9.8-2.5-19.8-5-29.7-7.1C269.137,648.44,269.137,614.641,297.538,608.24z"/>
-</symbol>
-       <symbol id="icon-lung" viewBox="0 0 24 24">
-    <!-- Trachea -->
-    <path d="M12 2v5" stroke="#8B5E3C" stroke-width="1.2" stroke-linecap="round"/>
-    <!-- Bronchi -->
-    <path d="M12 7L9.5 10" stroke="#8B5E3C" stroke-width="0.8" stroke-linecap="round"/>
-    <path d="M12 7L14.5 10" stroke="#8B5E3C" stroke-width="0.8" stroke-linecap="round"/>
-    <!-- Left Lung (slightly larger & lower) -->
-    <path
-      d="M11 9v4c0 5-2.2 8-5.5 8s-4.5-3.5-4.5-6.5c0-3.5 2.2-6.5 5.5-7.5"
-      fill="#F28B82"
-      stroke="#D66A6A"
-      stroke-width="0.4"
-    />
-    <!-- Right Lung (slightly larger & lower) -->
-    <path
-      d="M13 9v4c0 5 2.2 8 5.5 8s4.5-3.5 4.5-6.5c0-3.5-2.2-6.5-5.5-7.5"
-      fill="#F28B82"
-      stroke="#D66A6A"
-      stroke-width="0.4"
-    />
-  </symbol>
-  <symbol id="icon-stethoscope" viewBox="0 0 24 24">
-    <defs>
-      <linearGradient id="stethoBlue" x1="0" y1="0" x2="24" y2="24">
-        <stop offset="0%" stop-color="#60A5FA"/>
-        <stop offset="100%" stop-color="#2563EB"/>
-      </linearGradient>
-    </defs>
-    <g fill="none"
-      stroke="#3B82F6"
-      stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round">
-      <!-- Ear tips -->
-      <circle cx="8" cy="4" r="1"/>
-      <circle cx="16" cy="4" r="1"/>
-      <!-- Tubes -->
-      <path d="M8 5v5c0 2.2 1.8 4 4 4s4-1.8 4-4V5"/>
-      <!-- Stem -->
-      <path d="M12 14v2.5"/>
-      <!-- Lower tubing -->
-      <path d="M12 16.5c0 2.5 1.5 4.5 4 4.5"/>
-      <!-- Chest piece -->
-      <circle cx="17" cy="21" r="2"/>
-    </g>
-  </symbol>
-  <symbol id="icon-salad" viewBox="0 0 57.21 57.21">
-  <!-- Bowl body -->
-  <path fill="#E6E6E6" d="M29.046,53.605H40c0.992,0,1.604-1.083,1.092-1.932l-0.01-0.017
+    c-26.2-9.2-52.801-17.301-79.7-24.101c-9.8-2.5-19.8-5-29.7-7.1C269.137,648.44,269.137,614.641,297.538,608.24z" />
+    </symbol>
+    <symbol id="icon-lung" viewBox="0 0 24 24">
+      <!-- Trachea -->
+      <path d="M12 2v5" stroke="#8B5E3C" stroke-width="1.2" stroke-linecap="round" />
+      <!-- Bronchi -->
+      <path d="M12 7L9.5 10" stroke="#8B5E3C" stroke-width="0.8" stroke-linecap="round" />
+      <path d="M12 7L14.5 10" stroke="#8B5E3C" stroke-width="0.8" stroke-linecap="round" />
+      <!-- Left Lung (slightly larger & lower) -->
+      <path d="M11 9v4c0 5-2.2 8-5.5 8s-4.5-3.5-4.5-6.5c0-3.5 2.2-6.5 5.5-7.5" fill="#F28B82" stroke="#D66A6A"
+        stroke-width="0.4" />
+      <!-- Right Lung (slightly larger & lower) -->
+      <path d="M13 9v4c0 5 2.2 8 5.5 8s4.5-3.5 4.5-6.5c0-3.5-2.2-6.5-5.5-7.5" fill="#F28B82" stroke="#D66A6A"
+        stroke-width="0.4" />
+    </symbol>
+    <symbol id="icon-stethoscope" viewBox="0 0 24 24">
+      <defs>
+        <linearGradient id="stethoBlue" x1="0" y1="0" x2="24" y2="24">
+          <stop offset="0%" stop-color="#60A5FA" />
+          <stop offset="100%" stop-color="#2563EB" />
+        </linearGradient>
+      </defs>
+      <g fill="none" stroke="#3B82F6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Ear tips -->
+        <circle cx="8" cy="4" r="1" />
+        <circle cx="16" cy="4" r="1" />
+        <!-- Tubes -->
+        <path d="M8 5v5c0 2.2 1.8 4 4 4s4-1.8 4-4V5" />
+        <!-- Stem -->
+        <path d="M12 14v2.5" />
+        <!-- Lower tubing -->
+        <path d="M12 16.5c0 2.5 1.5 4.5 4 4.5" />
+        <!-- Chest piece -->
+        <circle cx="17" cy="21" r="2" />
+      </g>
+    </symbol>
+    <symbol id="icon-salad" viewBox="0 0 57.21 57.21">
+      <!-- Bowl body -->
+      <path fill="#E6E6E6" d="M29.046,53.605H40c0.992,0,1.604-1.083,1.092-1.932l-0.01-0.017
     c-0.709-1.177-0.847-2.657-0.215-3.877c0.552-1.066,1.449-1.946,2.579-2.486
     c7.719-3.686,13.193-7.804,13.762-16.206c0.054-0.796-0.572-1.481-1.37-1.481
     H1.376c-0.798,0-1.424,0.685-1.37,1.481c0.569,8.401,6.042,12.52,13.762,16.206
     c1.129,0.539,2.027,1.42,2.579,2.486c0.632,1.22,0.494,2.7-0.215,3.877
-    l-0.01,0.017C15.61,52.522,16.222,53.605,17.214,53.605H29.046z"/>
-  <!-- Bowl rim lines -->
-  <path fill="#FFFFFF" d="M36,47.605H21c-0.552,0-1-0.447-1-1s0.448-1,1-1h15c0.552,0,1,0.447,1,1S36.552,47.605,36,47.605z"/>
-  <path fill="#FFFFFF" d="M36,50.605H21c-0.552,0-1-0.447-1-1s0.448-1,1-1h15c0.552,0,1,0.447,1,1S36.552,50.605,36,50.605z"/>
-  <!-- Tomato (red circle) -->
-  <circle fill="#D13834" cx="41" cy="12.605" r="9"/>
-  <!-- Tomato cross marks -->
-  <line x1="36.5" y1="8.5" x2="45.5" y2="17.5" stroke="#ED3F32" stroke-width="1.4" stroke-linecap="round"/>
-  <line x1="45.5" y1="8.5" x2="36.5" y2="17.5" stroke="#ED3F32" stroke-width="1.4" stroke-linecap="round"/>
-  <!-- Lettuce / greens base -->
-  <path fill="#88C057" d="M7,27.605h43.241c0.105-0.374,0.332-0.713,0.669-0.951l0.353-0.249
+    l-0.01,0.017C15.61,52.522,16.222,53.605,17.214,53.605H29.046z" />
+      <!-- Bowl rim lines -->
+      <path fill="#FFFFFF"
+        d="M36,47.605H21c-0.552,0-1-0.447-1-1s0.448-1,1-1h15c0.552,0,1,0.447,1,1S36.552,47.605,36,47.605z" />
+      <path fill="#FFFFFF"
+        d="M36,50.605H21c-0.552,0-1-0.447-1-1s0.448-1,1-1h15c0.552,0,1,0.447,1,1S36.552,50.605,36,50.605z" />
+      <!-- Tomato (red circle) -->
+      <circle fill="#D13834" cx="41" cy="12.605" r="9" />
+      <!-- Tomato cross marks -->
+      <line x1="36.5" y1="8.5" x2="45.5" y2="17.5" stroke="#ED3F32" stroke-width="1.4" stroke-linecap="round" />
+      <line x1="45.5" y1="8.5" x2="36.5" y2="17.5" stroke="#ED3F32" stroke-width="1.4" stroke-linecap="round" />
+      <!-- Lettuce / greens base -->
+      <path fill="#88C057" d="M7,27.605h43.241c0.105-0.374,0.332-0.713,0.669-0.951l0.353-0.249
     c0.982-0.692,0.983-2.148,0.001-2.84l-0.354-0.25c-0.686-0.483-0.928-1.388-0.576-2.15
     l0.181-0.392c0.505-1.091-0.223-2.352-1.42-2.46l-0.43-0.039
     c-0.836-0.076-1.499-0.738-1.575-1.574l-0.039-0.43c-0.108-1.197-1.37-1.925-2.46-1.42
@@ -3226,13 +3324,13 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
     l-0.392-0.182c-1.091-0.505-2.352,0.224-2.46,1.42l-0.039,0.43
     c-0.076,0.836-0.738,1.499-1.575,1.574l-0.43,0.039c-1.197,0.108-1.925,1.37-1.42,2.46
     l0.181,0.392c0.353,0.762,0.11,1.667-0.576,2.15l-0.353,0.249
-    c-0.982,0.692-0.982,2.149,0,2.841l0.353,0.249c0.337,0.237,0.563,0.577,0.669,0.951H7z"/>
-  <!-- Crouton / brown piece -->
-  <path fill="#A46F3E" d="M12.545,13.88l5.76-8.175c0.95-1.349,2.832-1.675,4.18-0.724
+    c-0.982,0.692-0.982,2.149,0,2.841l0.353,0.249c0.337,0.237,0.563,0.577,0.669,0.951H7z" />
+      <!-- Crouton / brown piece -->
+      <path fill="#A46F3E" d="M12.545,13.88l5.76-8.175c0.95-1.349,2.832-1.675,4.18-0.724
     c1.349,0.95,1.675,2.832,0.724,4.18l-5.76,8.175c-0.95,1.349-2.832,1.675-4.18,0.724
-    C11.92,17.11,11.594,15.229,12.545,13.88z"/>
-  <!-- Egg / pale topping -->
-  <path fill="#FBD490" d="M25.263,23.565l-0.353-0.249c-0.686-0.483-0.929-1.388-0.576-2.15
+    C11.92,17.11,11.594,15.229,12.545,13.88z" />
+      <!-- Egg / pale topping -->
+      <path fill="#FBD490" d="M25.263,23.565l-0.353-0.249c-0.686-0.483-0.929-1.388-0.576-2.15
     l0.181-0.392c0.505-1.091-0.224-2.352-1.42-2.46l-0.43-0.039
     c-0.836-0.076-1.499-0.738-1.574-1.574l-0.039-0.43c-0.108-1.197-1.37-1.924-2.46-1.42
     l-0.392,0.182c-0.762,0.353-1.667,0.11-2.15-0.576l-0.249-0.353
@@ -3242,24 +3340,30 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
     l0.181,0.392c0.353,0.762,0.11,1.667-0.576,2.15l-0.353,0.249
     c-0.982,0.692-0.982,2.149,0,2.841l0.353,0.249c0.337,0.237,0.563,0.577,0.668,0.95
     h19.722c0.105-0.374,0.332-0.713,0.668-0.95l0.353-0.249
-    C26.246,25.714,26.246,24.257,25.263,23.565z"/>
-  <!-- Dark green herb flecks -->
-  <path fill="#436B1C" d="M29.5,21.105c-0.256,0-0.512-0.098-0.707-0.293c-0.391-0.391-0.391-1.023,0-1.414l1.5-1.5c0.391-0.391,1.023-0.391,1.414,0s0.391,1.023,0,1.414l-1.5,1.5C30.012,21.007,29.756,21.105,29.5,21.105z"/>
-  <path fill="#436B1C" d="M35,23.605c-0.256,0-0.512-0.098-0.707-0.293l-1-1c-0.391-0.391-0.391-1.023,0-1.414s1.023-0.391,1.414,0l1,1c0.391,0.391,0.391,1.023,0,1.414C35.512,23.507,35.256,23.605,35,23.605z"/>
-  <path fill="#436B1C" d="M30,25.605c-0.256,0-0.512-0.098-0.707-0.293c-0.391-0.391-0.391-1.023,0-1.414l1-1c0.391-0.391,1.023-0.391,1.414,0s0.391,1.023,0,1.414l-1,1C30.512,25.507,30.256,25.605,30,25.605z"/>
-  <!-- Green stem on tomato -->
-  <path fill="#659C35" d="M53,21.605h-4c-0.553,0-1-0.447-1-1s0.447-1,1-1h4c0.553,0,1,0.447,1,1S53.553,21.605,53,21.605z"/>
-  <path fill="#659C35" d="M47,27.605c-0.553,0-1-0.447-1-1v-4c0-0.553,0.447-1,1-1s1,0.447,1,1v4C48,27.158,47.553,27.605,47,27.605z"/>
-</symbol>
+    C26.246,25.714,26.246,24.257,25.263,23.565z" />
+      <!-- Dark green herb flecks -->
+      <path fill="#436B1C"
+        d="M29.5,21.105c-0.256,0-0.512-0.098-0.707-0.293c-0.391-0.391-0.391-1.023,0-1.414l1.5-1.5c0.391-0.391,1.023-0.391,1.414,0s0.391,1.023,0,1.414l-1.5,1.5C30.012,21.007,29.756,21.105,29.5,21.105z" />
+      <path fill="#436B1C"
+        d="M35,23.605c-0.256,0-0.512-0.098-0.707-0.293l-1-1c-0.391-0.391-0.391-1.023,0-1.414s1.023-0.391,1.414,0l1,1c0.391,0.391,0.391,1.023,0,1.414C35.512,23.507,35.256,23.605,35,23.605z" />
+      <path fill="#436B1C"
+        d="M30,25.605c-0.256,0-0.512-0.098-0.707-0.293c-0.391-0.391-0.391-1.023,0-1.414l1-1c0.391-0.391,1.023-0.391,1.414,0s0.391,1.023,0,1.414l-1,1C30.512,25.507,30.256,25.605,30,25.605z" />
+      <!-- Green stem on tomato -->
+      <path fill="#659C35"
+        d="M53,21.605h-4c-0.553,0-1-0.447-1-1s0.447-1,1-1h4c0.553,0,1,0.447,1,1S53.553,21.605,53,21.605z" />
+      <path fill="#659C35"
+        d="M47,27.605c-0.553,0-1-0.447-1-1v-4c0-0.553,0.447-1,1-1s1,0.447,1,1v4C48,27.158,47.553,27.605,47,27.605z" />
+    </symbol>
   </svg>
 
   <div class="app">
 
     <!-- Header -->
     <header class="app-header">
-      <button class="theme-btn" id="themeBtn" aria-label="تبديل الوضع الليلي/النهاري"><i class="ti ti-sun theme-icon sun"></i></button>
+      <button class="theme-btn" id="themeBtn" aria-label="تبديل الوضع الليلي/النهاري"><i
+          class="ti ti-sun theme-icon sun"></i></button>
       <div class="logo">
-        <span class="logo-icon"><!--<svg><use href="#icon-stethoscope"/></svg>-->🩺  </span>
+        <span class="logo-icon"><!--<svg><use href="#icon-stethoscope"/></svg>-->🩺 </span>
         <span>طبيبك</span>
       </div>
       <p class="app-subtitle">المساعد الافتراضي الذكي للفحص الطبي وتقييم الحالات</p>
@@ -3333,7 +3437,9 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
 
       <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem;">
         <div class="divider-line"><span>أو</span></div>
-        <button class="btn-breathing" id="startBreathingBtn"><svg width="24" height="24"><use href="#icon-lung"/></svg> إجراء اختبار تقييم التنفس</button>
+        <button class="btn-breathing" id="startBreathingBtn"><svg width="24" height="24">
+            <use href="#icon-lung" />
+          </svg> إجراء اختبار تقييم التنفس</button>
         <p style="font-size:0.78rem;color:var(--text-muted);text-align:center;">تمرين تنفس موجه لمساعدتك في تقييم مدى
           صعوبة التنفس</p>
       </div>
@@ -3383,15 +3489,25 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
     <main id="screen-breathing" class="screen glass">
       <div class="breathing-container">
 
-        <button class="breath-mute-btn" id="breathMuteBtn" title="تشغيل/إيقاف التوجيه الصوتي"><i class="ti ti-volume-off"></i></button>
+        <button class="breath-mute-btn" id="breathMuteBtn" title="تشغيل/إيقاف التوجيه الصوتي"><i
+            class="ti ti-volume-off"></i></button>
 
         <div class="breathing-header">
-          <h2><svg width="24" height="24"><use href="#icon-lung"/></svg> تقييم التنفس</h2>
+          <h2><svg width="24" height="24">
+              <use href="#icon-lung" />
+            </svg> تقييم التنفس</h2>
           <p style="color:var(--text-muted);">اتبع الدائرة المتحركة. سيوجهك الصوت في كل مرحلة.</p>
           <div class="cycle-badge" id="cycleBadge">الدورة 1 من 3</div>
         </div>
 
-        <div class="circle-wrapper">
+        <div class="breath-start-wrap" id="breathStartWrap">
+          <button class="breath-start-btn" id="breathStartBtn" aria-label="ابدأ اختبار التنفس">
+            <i class="ti ti-player-play"></i>
+          </button>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.75rem;">اضغط للبدء عندما تكون مستعداً</p>
+        </div>
+
+        <div class="circle-wrapper" id="circleWrapperEl" style="display:none;">
           <div class="breath-circle" id="breathCircle">
             <div class="breath-inner">
               <span class="phase-label" id="phaseLabel">استعد</span>
@@ -3550,7 +3666,8 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
             </button>
           </div>
           <p style="font-size:0.8rem;color:var(--text-muted);line-height:1.55;margin-top:0.75rem;">
-            <i class="ti ti-checks" style="color:var(--green); font-size:1.3rem;"></i> التذكيرات تعمل مباشرة من المتصفح — لا حاجة لأي خادم أو تطبيق خارجي.
+            <i class="ti ti-checks" style="color:var(--green); font-size:1.3rem;"></i> التذكيرات تعمل مباشرة من المتصفح
+            — لا حاجة لأي خادم أو تطبيق خارجي.
             ستصلك إشعارات قبل <strong>5 دقائق</strong> من موعد كل جرعة. يجب إبقاء التبويب مفتوحاً في المتصفح.
           </p>
         </div>
@@ -3565,8 +3682,8 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
 
       <div class="food-header">
         <h2><svg width="20" height="20">
-  <use href="#icon-salad"></use>
-</svg> التوجيه الغذائي</h2>
+            <use href="#icon-salad"></use>
+          </svg> التوجيه الغذائي</h2>
         <p>اختر كيف تشعر أو صف حالتك — سنقترح أفضل الأطعمة والمشروبات والعادات للتعافي.</p>
       </div>
 
@@ -3604,7 +3721,9 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       <div id="foodLoading" style="display:none;" class="food-loading">
         <div class="pulse-ring-wrap">
           <div class="pulse-ring"></div>
-          <span class="pulse-emoji"><svg width="20" height="20"><use href="#icon-salad"></use></svg></span>
+          <span class="pulse-emoji"><svg width="20" height="20">
+              <use href="#icon-salad"></use>
+            </svg></span>
         </div>
         <p style="color:var(--text-2);">جاري تحليل حالتك وإعداد التوصيات...</p>
       </div>
@@ -3696,7 +3815,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
         </div>
 
         <div class="bmi-disclaimer">
-          <span><i class =" ti ti-info-circle"></i></span>
+          <span><i class=" ti ti-info-circle"></i></span>
           <span>مؤشر كتلة الجسم أداة فحص وليس مقياساً تشخيصياً. تؤثر كتلة العضلات وكثافة العظام والعرق على مخاطر الصحة
             بشكل مستقل. استشر طبيبك لتقييم شامل.</span>
         </div>
@@ -3953,7 +4072,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
 
       <!-- Shown when no triage session exists yet -->
       <div id="pharmNoReport" class="pharm-no-report" style="display:none;">
-        <span><i class =" ti ti-info-circle"></i></span>
+        <span><i class=" ti ti-info-circle"></i></span>
         <p>لا يوجد تقرير فحص محفوظ حتى الآن. أكمل جلسة فحص أولاً للحصول على التقرير الطبي الكامل.</p>
         <button class="btn btn-primary" onclick="showTab('landing')"
           style="margin-top:0.5rem;font-size:0.85rem;padding:0.6rem 1.2rem;width:fit-content;">
@@ -4031,8 +4150,8 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
      ============================================================ -->
   <div class="meds-modal-overlay" id="medsModalOverlay">
     <div class="meds-modal">
+      <span class="editable-time-badge"><i class="ti ti-edit"></i> يمكن تغيير المواعيد</span>
       <h3><i class="ti ti-pill" aria-hidden="true"></i>إضافة دواء</h3>
-
       <div class="meds-field">
         <label>اسم الدواء *</label>
         <input type="text" id="medNameInput" placeholder="مثال: باراسيتامول، ميتفورمين..." />
@@ -4297,8 +4416,8 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       STATE.theme = STATE.theme === 'light' ? 'dark' : 'light';
       document.body.classList.toggle('dark', STATE.theme === 'dark');
       document.getElementById('themeBtn').innerHTML = STATE.theme === 'dark'
-      ? '<i class="ti ti-moon theme-icon moon"></i>'
-      : '<i class="ti ti-sun theme-icon sun"></i>';
+        ? '<i class="ti ti-moon theme-icon moon"></i>'
+        : '<i class="ti ti-sun theme-icon sun"></i>';
     });
 
     /* ================================================================
@@ -4466,11 +4585,11 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
 
       let html = '';
       if (morning.length)
-      html += renderDoseSection('<span style="font-size:1.2rem"><i class="ti ti-sunrise"></i> جرعات الصباح', morning, taken);
+        html += renderDoseSection('<span style="font-size:1.2rem"><i class="ti ti-sunrise"></i> جرعات الصباح', morning, taken);
       if (afternoon.length)
-      html += renderDoseSection('<span style="font-size:1.2rem"><i class="ti ti-sun"></i> جرعات الظهر', afternoon, taken);
+        html += renderDoseSection('<span style="font-size:1.2rem"><i class="ti ti-sun"></i> جرعات الظهر', afternoon, taken);
       if (evening.length)
-      html += renderDoseSection('<span style="font-size:1.2rem"><i class="ti ti-moon"></i> جرعات المساء', evening, taken);
+        html += renderDoseSection('<span style="font-size:1.2rem"><i class="ti ti-moon"></i> جرعات المساء', evening, taken);
 
       if (!allDoses.length) {
         html = `<div class="meds-empty">
@@ -5236,11 +5355,17 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       document.getElementById('difficultyPanel').style.display = 'none';
       document.getElementById('breathResults').style.display = 'none';
       document.getElementById('breathCancelWrap').style.display = '';
+      document.getElementById('breathStartWrap').style.display = '';
+      document.getElementById('circleWrapperEl').style.display = 'none';
       if ('speechSynthesis' in window) speechSynthesis.getVoices();
+    });
+
+    document.getElementById('breathStartBtn').addEventListener('click', () => {
+      document.getElementById('breathStartWrap').style.display = 'none';
+      document.getElementById('circleWrapperEl').style.display = '';
       speakPhase('تقييم التنفس. استعد.');
       setTimeout(runBreathingCycle, 1500);
     });
-
     function runBreathingCycle() {
       document.getElementById('cycleBadge').textContent = `الدورة ${STATE.breathing.cycle + 1} من ${STATE.breathing.totalCycles}`;
       let phaseIdx = 0;
@@ -5319,10 +5444,10 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
 
       const urgEl = document.getElementById('breathUrgency');
       urgEl.innerHTML = level === 'red'
-    ? '<i class="ti ti-alert-triangle"></i> راجع طبيباً'
-    : level === 'orange'
-    ? '<i class="ti ti-alert-circle"></i> راقب الأعراض'
-    : '<i class="ti ti-circle-check"></i> ضمن المعدل الطبيعي';
+        ? '<i class="ti ti-alert-triangle"></i> راجع طبيباً'
+        : level === 'orange'
+          ? '<i class="ti ti-alert-circle"></i> راقب الأعراض'
+          : '<i class="ti ti-circle-check"></i> ضمن المعدل الطبيعي';
       urgEl.style.background = bgColor;
       document.getElementById('breathResults').style.display = '';
     }
@@ -5338,6 +5463,8 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       document.getElementById('difficultyPanel').style.display = 'none';
       document.getElementById('breathResults').style.display = 'none';
       document.getElementById('breathCancelWrap').style.display = '';
+      document.getElementById('circleWrapperEl').style.display = '';
+      document.getElementById('breathStartWrap').style.display = 'none';
       speakPhase('إعادة البدء. استعد.');
       setTimeout(runBreathingCycle, 1200);
     });
@@ -5399,9 +5526,11 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       document.getElementById('bmiCatBadge').textContent = cat;
       document.getElementById('bmiCatDesc').textContent = catDesc;
 
-      const pct = Math.max(0, Math.min(100, ((bmi - 10) / 30) * 100));
-      setTimeout(() => { document.getElementById('gaugePointer').style.left = `${pct}%`; }, 100);
-
+      // RTL fix: flip the percentage so the ball moves correctly
+      // نحيف (right) = low BMI, سمنة (left) = high BMI
+      const pct = Math.max(0, Math.min(100, ((bmi - 15) / 25) * 100));
+      const rtlPct = 100 - pct;
+      setTimeout(() => { document.getElementById('gaugePointer').style.left = `${rtlPct}%`; }, 100);
       const tips = buildBMITips(bmi, age, gender);
       document.getElementById('tipsList').innerHTML = tips.map(t => `<li>${t}</li>`).join('');
       card.scrollIntoView({ behavior: 'smooth', block: 'start' });
