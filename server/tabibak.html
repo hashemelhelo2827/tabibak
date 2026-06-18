@@ -4143,7 +4143,8 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
           <button type="submit" class="btn btn-primary">تسجيل الدخول</button>
           <div style="margin-top:16px;text-align:center;">
             <div style="color:var(--text-muted);font-size:0.85rem;margin-bottom:10px;">أو</div>
-            <div id="g_id_onload" style="display:flex;justify-content:center;"></div>
+            <div id="g_id_onload"></div>
+            <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-shape="pill" data-text="signin_with" data-width="280" style="display:flex;justify-content:center;"></div>
           </div>
         </form>
 
@@ -4744,15 +4745,15 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       googleInitAttempted = true;
       google.accounts.id.initialize({
         client_id: googleClientId,
-        callback: handleGoogleCredential,
+        callback: handleGoogleCredentialResponse,
       });
       google.accounts.id.renderButton(
-        document.getElementById('g_id_onload'),
+        document.querySelector('.g_id_signin'),
         { theme: 'outline', size: 'large', type: 'standard', shape: 'pill', text: 'signin_with', width: 280 }
       );
     }
 
-    async function handleGoogleCredential(response) {
+    async function handleGoogleCredentialResponse(response) {
       try {
         const data = await api('POST', '/api/auth/google', { credential: response.credential });
         if (data.needsVerification) {
