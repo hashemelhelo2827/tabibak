@@ -1,9 +1,12 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const { OAuth2Client } = require('google-auth-library');
 const { getDb } = require('../db');
 const { generateToken, authenticateToken } = require('../auth');
+const { sendVerificationCode, generateCode } = require('../email');
 
 const router = express.Router();
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 router.post('/register', async (req, res) => {
   try {
@@ -50,6 +53,126 @@ router.post('/login', async (req, res) => {
     const token = generateToken(username);
     const { passwordHash, ...profile } = user;
     profile.timezoneOffset = timezoneOffset ?? user.timezoneOffset ?? 0;
+    res.json({ token, ...profile });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/google', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ error: 'Google credential required' });
+    }
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name } = payload;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Google account has no email' });
+    }
+
+    const db = await getDb();
+    const existing = await db.execute({
+      sql: 'SELECT * FROM users WHERE googleId = ? OR email = ?',
+      args: [googleId, email],
+    });
+
+    if (existing.rows.length > 0) {
+      const user = existing.rows[0];
+      const code = generateCode();
+      const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+      await db.execute({
+        sql: 'UPDATE users SET verificationCode = ?, verificationCodeExpires = ? WHERE username = ?',
+        args: [code, expires, user.username],
+      });
+      try {
+        await sendVerificationCode(email, code);
+      } catch (e) {
+        console.error('Failed to send verification email:', e.message);
+        return res.status(500).json({ error: 'Failed to send verification code. Check SMTP config.' });
+      }
+      return res.json({ needsVerification: true, email, username: user.username });
+    }
+
+    let baseUsername = email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_');
+    let username = baseUsername;
+    let suffix = 1;
+    while (true) {
+      const check = await db.execute({
+        sql: 'SELECT username FROM users WHERE username = ?',
+        args: [username],
+      });
+      if (check.rows.length === 0) break;
+      username = `${baseUsername}${suffix}`;
+      suffix++;
+    }
+
+    const passwordHash = bcrypt.hashSync(googleId, 10);
+    await db.execute({
+      sql: 'INSERT INTO users (username, passwordHash, name, email, googleId, emailVerified) VALUES (?, ?, ?, ?, ?, 0)',
+      args: [username, passwordHash, name || email.split('@')[0], email, googleId],
+    });
+
+    const code = generateCode();
+    const expires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    await db.execute({
+      sql: 'UPDATE users SET verificationCode = ?, verificationCodeExpires = ? WHERE username = ?',
+      args: [code, expires, username],
+    });
+
+    try {
+      await sendVerificationCode(email, code);
+    } catch (e) {
+      console.error('Failed to send verification email:', e.message);
+      return res.status(500).json({ error: 'Failed to send verification code. Check SMTP config.' });
+    }
+
+    res.json({ needsVerification: true, email, username });
+  } catch (err) {
+    console.error('Google login error:', err);
+    res.status(401).json({ error: 'Invalid Google credential' });
+  }
+});
+
+router.post('/verify-code', async (req, res) => {
+  try {
+    const { username, code } = req.body;
+    if (!username || !code) {
+      return res.status(400).json({ error: 'Username and code are required' });
+    }
+    const db = await getDb();
+    const result = await db.execute({
+      sql: 'SELECT * FROM users WHERE username = ?',
+      args: [username],
+    });
+    const user = result.rows[0];
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    if (!user.verificationCode || !user.verificationCodeExpires) {
+      return res.status(400).json({ error: 'No verification code sent. Please login again.' });
+    }
+    if (user.verificationCode !== code) {
+      return res.status(400).json({ error: 'Invalid verification code' });
+    }
+    if (new Date(user.verificationCodeExpires) < new Date()) {
+      return res.status(400).json({ error: 'Verification code expired. Please login again.' });
+    }
+
+    await db.execute({
+      sql: 'UPDATE users SET emailVerified = 1, verificationCode = \'\', verificationCodeExpires = \'\' WHERE username = ?',
+      args: [username],
+    });
+
+    const token = generateToken(username);
+    const { passwordHash, verificationCode, verificationCodeExpires, ...profile } = user;
+    profile.emailVerified = 1;
     res.json({ token, ...profile });
   } catch (err) {
     console.error(err);

@@ -95,6 +95,11 @@ async function initSchema() {
   try { await db.execute('ALTER TABLE users ADD COLUMN avatar TEXT DEFAULT \'\''); } catch (e) { }
   try { await db.execute('ALTER TABLE sessions ADD COLUMN images TEXT DEFAULT \'\''); } catch (e) { }
   try { await db.execute('ALTER TABLE users ADD COLUMN timezoneOffset REAL DEFAULT 0'); } catch (e) { }
+  try { await db.execute('ALTER TABLE users ADD COLUMN email TEXT DEFAULT \'\''); } catch (e) { }
+  try { await db.execute('ALTER TABLE users ADD COLUMN emailVerified INTEGER DEFAULT 0'); } catch (e) { }
+  try { await db.execute('ALTER TABLE users ADD COLUMN verificationCode TEXT DEFAULT \'\''); } catch (e) { }
+  try { await db.execute('ALTER TABLE users ADD COLUMN verificationCodeExpires TEXT DEFAULT \'\''); } catch (e) { }
+  try { await db.execute('ALTER TABLE users ADD COLUMN googleId TEXT DEFAULT \'\''); } catch (e) { }
 }
 
 module.exports = { getDb };

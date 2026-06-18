@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
   <script async src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script async src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <style>
     /* ============================================================
@@ -4140,6 +4141,10 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
             <input type="password" id="loginPass" placeholder="أدخل كلمة المرور..." autocomplete="current-password" />
           </div>
           <button type="submit" class="btn btn-primary">تسجيل الدخول</button>
+          <div style="margin-top:16px;text-align:center;">
+            <div style="color:var(--text-muted);font-size:0.85rem;margin-bottom:10px;">أو</div>
+            <div id="g_id_onload" style="display:flex;justify-content:center;"></div>
+          </div>
         </form>
 
         <form class="auth-form" id="registerForm">
@@ -4548,6 +4553,28 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
     </div>
   </div>
 
+  <!-- ============================================================
+     VERIFICATION CODE MODAL
+     ============================================================ -->
+  <div class="notification-modal-overlay" id="verificationModal">
+    <div class="notification-modal-card">
+      <div class="notification-modal-icon"><i class="ti ti-mail" style="font-size:3.5rem;color:var(--primary);"></i></div>
+      <h2 class="notification-modal-title">تحقق من بريدك الإلكتروني</h2>
+      <p class="notification-modal-desc" id="verificationDesc">لقد أرسلنا رمز تحقق إلى بريدك الإلكتروني. يرجى إدخاله أدناه.</p>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;margin:16px 0;">
+        <input type="text" id="verificationCodeInput" placeholder="أدخل رمز التحقق..." maxlength="6" style="width:200px;padding:12px 16px;font-size:1.4rem;text-align:center;letter-spacing:6px;border:2px solid var(--border);border-radius:12px;background:var(--bg-card);color:var(--text);direction:ltr;" />
+        <div id="verificationError" style="color:var(--red);font-size:0.85rem;display:none;"></div>
+      </div>
+      <button id="verifyCodeBtn" class="notification-perm-btn" style="margin-bottom:8px;">
+        <i class="ti ti-check"></i>
+        <span>تحقق</span>
+      </button>
+      <button class="btn btn-secondary" id="verificationModalClose" style="width:100%;">
+        إلغاء
+      </button>
+    </div>
+  </div>
+
   <!-- ================================================================
      JAVASCRIPT
      ================================================================ -->
@@ -4692,6 +4719,89 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
         }
       } catch (e) { }
     }
+
+    /* ================================================================
+       GOLE SIGN-IN
+       ================================================================ */
+    let googleClientId = '';
+
+    async function loadGoogleClientId() {
+      try {
+        const res = await fetch('/api/config/google-client-id');
+        const data = await res.json();
+        googleClientId = data.clientId;
+        if (googleClientId && typeof google !== 'undefined' && google.accounts) {
+          renderGoogleButton();
+        }
+      } catch (e) { /* Google auth not configured */ }
+    }
+
+    function renderGoogleButton() {
+      if (!googleClientId) return;
+      google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: handleGoogleCredential,
+      });
+      google.accounts.id.renderButton(
+        document.getElementById('g_id_onload'),
+        { theme: 'outline', size: 'large', type: 'standard', shape: 'pill', text: 'signin_with', width: 280 }
+      );
+    }
+
+    async function handleGoogleCredential(response) {
+      try {
+        const data = await api('POST', '/api/auth/google', { credential: response.credential });
+        if (data.needsVerification) {
+          STATE.pendingGoogleUser = data;
+          document.getElementById('verificationDesc').textContent = `لقد أرسلنا رمز تحقق إلى ${data.email}. يرجى إدخاله أدناه.`;
+          document.getElementById('verificationCodeInput').value = '';
+          document.getElementById('verificationError').style.display = 'none';
+          document.getElementById('verificationModal').classList.add('open');
+        }
+      } catch (err) {
+        alert(err.message || 'فشل تسجيل الدخول عبر Google');
+      }
+    }
+
+    /* ================================================================
+       VERIFICATION CODE
+       ================================================================ */
+    document.getElementById('verifyCodeBtn').addEventListener('click', async () => {
+      const code = document.getElementById('verificationCodeInput').value.trim();
+      const user = STATE.pendingGoogleUser;
+      if (!code || code.length !== 6) {
+        document.getElementById('verificationError').textContent = 'يرجى إدخال رمز التحقق المكون من 6 أرقام.';
+        document.getElementById('verificationError').style.display = '';
+        return;
+      }
+      try {
+        const data = await api('POST', '/api/auth/verify-code', { username: user.username, code });
+        setToken(data.token);
+        STATE.currentUser = data;
+        STATE.sessions = await api('GET', '/api/sessions');
+        try { STATE.meds.list = await api('GET', '/api/medications'); } catch (e) { STATE.meds.list = []; }
+        if (Notification.permission === 'granted') { startReminderScheduler(); requestFcmToken(); }
+        document.getElementById('verificationModal').classList.remove('open');
+        STATE.pendingGoogleUser = null;
+        refreshProfileScreen();
+        showTab('profile');
+      } catch (err) {
+        document.getElementById('verificationError').textContent = err.message || 'رمز التحقق غير صحيح أو منتهي الصلاحية.';
+        document.getElementById('verificationError').style.display = '';
+      }
+    });
+
+    document.getElementById('verificationModalClose').addEventListener('click', () => {
+      document.getElementById('verificationModal').classList.remove('open');
+      STATE.pendingGoogleUser = null;
+    });
+
+    document.getElementById('verificationModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('verificationModal')) {
+        document.getElementById('verificationModal').classList.remove('open');
+        STATE.pendingGoogleUser = null;
+      }
+    });
 
     function updateFoodContextBar() {
       const bar = document.getElementById('foodUserContextBar');
@@ -6832,6 +6942,9 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
       } catch (e) {
         console.error("Failed to load Groq API key from server", e);
       }
+
+      // Load Google Client ID for Sign In With Google
+      await loadGoogleClientId();
 
       refreshProfileScreen();
       refreshHistoryScreen();

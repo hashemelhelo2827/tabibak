@@ -61,6 +61,10 @@ app.get('/api/config/groq-key', (req, res) => {
   res.json({ key: process.env.GROQ_API_KEY || '' });
 });
 
+app.get('/api/config/google-client-id', (req, res) => {
+  res.json({ clientId: process.env.GOOGLE_CLIENT_ID || '' });
+});
+
 // Serve static frontend files
 app.use(express.static(__dirname));
 
