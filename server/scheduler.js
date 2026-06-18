@@ -28,7 +28,12 @@ function startScheduler() {
       console.error('Firebase Admin init failed:', err.message);
     }
   } else {
-    console.log('Firebase credentials not set — notifications will be server-logged only');
+    // IMPORTANT: if you see this on every boot, push notifications can NEVER
+    // be delivered while the tab is closed, no matter what the client does.
+    // Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
+    // in Railway -> Variables using the values from your service account JSON.
+    console.warn('[scheduler] Firebase credentials not set — push notifications are DISABLED. ' +
+      'Reminders will only work while a browser tab is open.');
   }
 
   cron.schedule('* * * * *', async () => {
@@ -69,35 +74,52 @@ function startScheduler() {
 
         if (alreadySent.rows.length > 0) continue;
 
-        if (fcmReady && row.fcmToken) {
-          try {
-            await admin.messaging().send({
-              token: row.fcmToken,
-              data: {
-                title: 'تذكير بالدواء',
-                body: `حان موعد ${row.medName} (${row.medDose}) بعد 5 دقائق`,
-                medicationId: row.medicationId,
-                doseTime: row.doseTime,
-                type: 'medication_reminder',
-              },
-            });
-            console.log(`FCM sent to ${row.username} for ${row.medName} at ${row.doseTime}`);
-          } catch (err) {
-            console.error(`FCM failed for ${row.username}:`, err.message);
-            if (err.code === 'messaging/invalid-registration-token' || err.code === 'messaging/registration-token-not-registered') {
-              await db.execute({
-                sql: "UPDATE users SET fcmToken = '' WHERE username = ?",
-                args: [row.username],
-              });
-            }
-            continue;
-          }
+        if (!fcmReady) {
+          // Firebase isn't configured at all — don't pretend we tried.
+          // Skip without writing to notification_log so a retry is still
+          // possible once credentials are fixed (within the 5-minute window).
+          continue;
         }
 
-        await db.execute({
-          sql: 'INSERT INTO notification_log (username, medicationId, doseId, doseTime, date) VALUES (?, ?, ?, ?, ?)',
-          args: [row.username, row.medicationId, row.doseId, row.doseTime, today],
-        });
+        if (!row.fcmToken) {
+          // Shouldn't happen given the WHERE clause above, but guard anyway.
+          continue;
+        }
+
+        let sendSucceeded = false;
+        try {
+          await admin.messaging().send({
+            token: row.fcmToken,
+            data: {
+              title: 'تذكير بالدواء',
+              body: `حان موعد ${row.medName} (${row.medDose}) بعد 5 دقائق`,
+              medicationId: row.medicationId,
+              doseTime: row.doseTime,
+              type: 'medication_reminder',
+            },
+          });
+          console.log(`FCM sent to ${row.username} for ${row.medName} at ${row.doseTime}`);
+          sendSucceeded = true;
+        } catch (err) {
+          console.error(`FCM failed for ${row.username}:`, err.message);
+          if (err.code === 'messaging/invalid-registration-token' || err.code === 'messaging/registration-token-not-registered') {
+            await db.execute({
+              sql: "UPDATE users SET fcmToken = '' WHERE username = ?",
+              args: [row.username],
+            });
+          }
+          // Do NOT write to notification_log on failure — this lets the
+          // next cron tick (still within the 5-minute window) retry instead
+          // of silently treating the dose as "handled" forever.
+          continue;
+        }
+
+        if (sendSucceeded) {
+          await db.execute({
+            sql: 'INSERT INTO notification_log (username, medicationId, doseId, doseTime, date) VALUES (?, ?, ?, ?, ?)',
+            args: [row.username, row.medicationId, row.doseId, row.doseTime, today],
+          });
+        }
       }
     } catch (err) {
       console.error('Scheduler error:', err);
