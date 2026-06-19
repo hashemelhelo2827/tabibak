@@ -7603,41 +7603,51 @@ ${valuesText}
     }
 
     async function analyzePdfText(pdfText, apiKey) {
-      const prompt = `أنت أخصائي تحاليل طبية خبير واستشاري سريري. إليك النص المستخرج من ملف PDF لتقرير تحاليل طبية:
+      // Step 1: extract structured values from raw PDF text
+      const extractionPrompt = `استخرج كل القيم الطبية من النص التالي بدقة. أعد JSON array فقط، كل عنصر:
+{
+  "name": "اسم الاختبار",
+  "value": "القيمة الرقمية",
+  "unit": "وحدة القياس إن وجدت",
+  "normalRange": "النطاق الطبيعي إن وجد"
+}
 
+نص التقرير:
 ${pdfText}
 
-حلل هذه القيم بدقة. أجب بصيغة JSON صالحة 100% فقط:
-{
-  "badge": "عنوان قصير لنوع الفحص أو التحليل المكتشف",
-  "status": "طبيعي أو غير طبيعي / يحتاج متابعة أو مراجعة طبية عاجلة",
-  "statusClass": "green أو orange أو red",
-  "analysis": "شرح تفصيلي بالعربية لكل قيمة غير طبيعية وتفسيرها السريري. اذكر كل قيمة غير طبيعية بالقيمة الرقمية والنطاق الطبيعي.",
-  "advices": [{ "title": "عنوان", "desc": "شرح" }]
-}`;
+تنبيهات مهمة:
+- استخرج كل قيمة دون استثناء (صورة دم، كبد، كلى، سكر، دهون، كهرباء، التهابات)
+- انتبه للقيم الصغيرة: Potassium، CRP، ESR، Uric Acid، Albumin، Bilirubin، HDL
+- إذا وجدت سكر ودهون: FBS، HbA1c، Cholesterol، Triglycerides، LDL
+- لا تترك أي قيمة
+- أعد JSON array فقط`;
 
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const extractRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          temperature: 0.3,
-          max_tokens: 2000,
-          messages: [{ role: 'system', content: 'أنت أخصائي تحاليل طبية خبير. أجب بـ JSON فقط.' }, { role: 'user', content: prompt }]
+          temperature: 0.15,
+          max_tokens: 3000,
+          messages: [{ role: 'user', content: extractionPrompt }]
         })
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error?.message || 'فشل تحليل النص');
+      if (!extractRes.ok) {
+        const err = await extractRes.json().catch(() => ({}));
+        throw new Error(err.error?.message || 'فشل استخراج القيم من النص');
       }
-      const data = await res.json();
-      const raw = data.choices?.[0]?.message?.content;
-      if (!raw) throw new Error('لم يرد خادم التحليل');
-      let clean = raw.replace(/```json|```/g, '').trim();
-      const startIdx = clean.indexOf('{');
-      const endIdx = clean.lastIndexOf('}');
-      if (startIdx !== -1 && endIdx !== -1) clean = clean.substring(startIdx, endIdx + 1);
-      return JSON.parse(clean);
+      const extractData = await extractRes.json();
+      const extractRaw = extractData.choices?.[0]?.message?.content;
+      if (!extractRaw) throw new Error('لم يرد خادم الاستخراج');
+      let extractClean = extractRaw.replace(/```json|```/g, '').trim();
+      const arrStart = extractClean.indexOf('[');
+      const arrEnd = extractClean.lastIndexOf(']');
+      if (arrStart !== -1 && arrEnd !== -1) extractClean = extractClean.substring(arrStart, arrEnd + 1);
+      const values = JSON.parse(extractClean);
+      if (!Array.isArray(values) || values.length === 0) throw new Error('لم يتم استخراج أي قيم');
+
+      // Step 2: analyze the extracted values
+      return await analyzeExtractedValues(values, apiKey);
     }
 
     async function convertPdfToImage(pdfDataUrl) {
