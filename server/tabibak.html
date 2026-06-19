@@ -4525,7 +4525,16 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
           <div class="advice-cards-grid" id="medicalTestAdvicesGrid"></div>
         </div>
 
-        <button class="btn btn-secondary" id="medicalTestResetBtn" style="margin-top:2rem;width:100%;">↩ تحليل مستند طبي
+        <div class="medical-actions" style="display:flex;gap:0.75rem;margin-top:1.5rem;">
+          <button class="btn btn-primary" id="medicalTestSaveBtn" style="flex:1;">
+            <i class="ti ti-device-floppy"></i> حفظ في السجل
+          </button>
+          <button class="btn btn-secondary" id="medicalTestPdfBtn" style="flex:1;">
+            <i class="ti ti-file-download"></i> تحميل PDF
+          </button>
+        </div>
+
+        <button class="btn btn-secondary" id="medicalTestResetBtn" style="margin-top:1rem;width:100%;">↩ تحليل مستند طبي
           آخر</button>
       </div>
 
@@ -4537,8 +4546,22 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
 
     </main>
 
-    <!-- ============================================================
-       SCREEN 6 — BMI CALCULATOR
+    <!-- Hidden printable div for PDF export -->
+    <div id="medicalTestPrintable" style="display:none;direction:rtl;font-family:'Cairo',sans-serif;padding:2rem;max-width:800px;margin:0 auto;">
+      <div style="text-align:center;border-bottom:2px solid #1a73e8;padding-bottom:1rem;margin-bottom:1.5rem;">
+        <h1 style="color:#1a73e8;font-size:1.5rem;margin:0;">طبيبك — تقرير تحليل طبي</h1>
+        <p style="color:#666;font-size:0.875rem;margin:0.5rem 0 0;" id="printDate"></p>
+      </div>
+      <div style="margin-bottom:1.5rem;">
+        <span style="display:inline-block;padding:0.25rem 1rem;border-radius:20px;font-size:0.875rem;font-weight:700;color:#fff;" id="printStatusBadge">—</span>
+        <h2 style="font-size:1.25rem;margin-top:0.75rem;" id="printBadge">—</h2>
+      </div>
+      <div style="margin-bottom:1.5rem;line-height:1.8;font-size:0.925rem;color:#333;white-space:pre-wrap;" id="printAnalysis"></div>
+      <div id="printAdvices" style="margin-top:1.5rem;"></div>
+      <div style="border-top:1px solid #ddd;margin-top:2rem;padding-top:1rem;font-size:0.75rem;color:#999;text-align:center;">
+        تم الإنشاء بواسطة طبيبك — الذكاء الاصطناعي للرعاية الصحية. هذه المعلومات ليست تشخيصاً طبياً بديلاً عن استشارة الطبيب.
+      </div>
+    </div>
        ============================================================ -->
     <main id="screen-bmi" class="screen">
 
@@ -4810,13 +4833,13 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       <div id="historyLoggedIn" style="display:none;width:100%;">
         <div style="margin-bottom:1.75rem;">
           <h2 style="font-size:1.75rem;">تقييماتك المحفوظة</h2>
-          <p style="color:var(--text-muted);">انقر على أي جلسة لعرض التقرير الكامل ومحادثة الفحص.</p>
+          <p style="color:var(--text-muted);">انقر على أي جلسة لعرض التفاصيل الكاملة.</p>
         </div>
         <div class="history-list" id="historyList"></div>
         <div id="historyEmpty" class="glass text-center-panel" style="display:none;">
           <span class="panel-icon"><i class="ti ti-clipboard"></i></span>
           <h3>لا توجد جلسات محفوظة</h3>
-          <p>أكمل تقييم طبي لرؤيته محفوظاً هنا.</p>
+          <p>قم بإجراء فحص طبي أو تحليل مخبري لرؤيته محفوظاً هنا.</p>
           <button class="btn btn-primary" id="historyStartBtn" style="margin-top:1rem;">ابدأ جلسة فحص</button>
         </div>
       </div>
@@ -5416,6 +5439,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       medicalTest: {
         apiKey: '',
         apiKeys: [],
+        lastResult: null,
         selectedImage: null, // base64 string
         selectedFileIsPdf: false,
         selectedFileName: '',
@@ -7894,6 +7918,12 @@ ${pdfText}`;
           `).join('');
 
           resultsEl.style.display = '';
+          STATE.medicalTest.lastResult = resultData;
+          // Auto-save to history if logged in
+          if (STATE.currentUser) {
+            saveMedicalTestSession(resultData);
+          }
+          document.getElementById('medicalTestSaveBtn').textContent = STATE.currentUser ? '✓ تم الحفظ في السجل' : 'حفظ في السجل';
         } catch (error) {
           console.error("Analysis error:", error);
           errorMsgEl.textContent = `فشل تحليل المستند الطبي: ${error.message || 'خطأ غير معروف'}. يرجى التأكد من جودة الصورة والمحاولة مرة أخرى.`;
@@ -7914,6 +7944,77 @@ ${pdfText}`;
         document.getElementById('medicalTestUploader').style.display = '';
       });
     }
+
+    async function saveMedicalTestSession(resultData) {
+      if (!STATE.currentUser) return;
+      const session = {
+        type: 'medical-test',
+        result: JSON.stringify({
+          badge: resultData.badge || '',
+          status: resultData.status || '',
+          statusClass: resultData.statusClass || 'green',
+          analysis: resultData.analysis || '',
+          advices: resultData.advices || [],
+        }),
+        details: resultData.badge || 'تحليل طبي',
+      };
+      try {
+        const saved = await api('POST', '/api/sessions', session);
+        STATE.sessions.unshift(saved);
+      } catch (e) {
+        STATE.sessions.unshift({
+          id: Date.now(),
+          ...session,
+          createdAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    document.getElementById('medicalTestSaveBtn').addEventListener('click', async () => {
+      const resultData = STATE.medicalTest.lastResult;
+      if (!resultData) return;
+      if (!STATE.currentUser) {
+        document.getElementById('medicalTestSaveBtn').textContent = 'سجّل الدخول أولاً';
+        setTimeout(() => document.getElementById('medicalTestSaveBtn').textContent = 'حفظ في السجل', 2000);
+        return;
+      }
+      await saveMedicalTestSession(resultData);
+      document.getElementById('medicalTestSaveBtn').textContent = '✓ تم الحفظ!';
+      setTimeout(() => document.getElementById('medicalTestSaveBtn').textContent = 'حفظ في السجل', 3000);
+    });
+
+    document.getElementById('medicalTestPdfBtn').addEventListener('click', async () => {
+      const resultData = STATE.medicalTest.lastResult;
+      if (!resultData) return;
+      const btn = document.getElementById('medicalTestPdfBtn');
+      btn.textContent = 'جاري إنشاء PDF...';
+      btn.disabled = true;
+      try {
+        const printable = document.getElementById('medicalTestPrintable');
+        document.getElementById('printDate').textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const statusBadge = document.getElementById('printStatusBadge');
+        statusBadge.textContent = resultData.status || '—';
+        statusBadge.style.background = resultData.statusClass === 'red' ? '#d32f2f' : resultData.statusClass === 'orange' ? '#f57c00' : '#388e3c';
+        document.getElementById('printBadge').textContent = resultData.badge || '—';
+        document.getElementById('printAnalysis').textContent = resultData.analysis || '';
+        const advicesHtml = (resultData.advices || []).map(a => `
+          <div style="margin-bottom:1rem;padding:0.75rem 1rem;background:#f5f5f5;border-radius:8px;border-right:4px solid #1a73e8;">
+            <h4 style="margin:0 0 0.25rem;font-size:0.925rem;color:#1a73e8;">${a.title}</h4>
+            <p style="margin:0;font-size:0.85rem;color:#555;">${a.desc}</p>
+          </div>
+        `).join('');
+        document.getElementById('printAdvices').innerHTML = advicesHtml ? `<h3 style="font-size:1rem;margin-bottom:0.75rem;color:#333;">نصائح وإرشادات طبية:</h3>${advicesHtml}` : '';
+
+        printable.style.display = 'block';
+        const opt = { margin: [0.75, 0.75, 0.75, 0.75], filename: `tabibak-${resultData.badge || 'تحليل-طبي'}-${Date.now()}.pdf`, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
+        await html2pdf().set(opt).from(printable).save();
+        printable.style.display = 'none';
+      } catch (e) {
+        console.error('PDF error:', e);
+      }
+      btn.textContent = 'تحميل PDF';
+      btn.disabled = false;
+    });
 
     /* ================================================================
        AUTH
@@ -8186,6 +8287,9 @@ ${pdfText}`;
       if (s.result && typeof s.result === 'string') {
         try {
           const r = JSON.parse(s.result);
+          if (s.type === 'medical-test') {
+            return { ...s, date: s.createdAt, badge: r.badge, status: r.status, statusClass: r.statusClass, analysis: r.analysis, advices: r.advices, username: s.username || STATE.currentUser?.username };
+          }
           return { ...s, date: s.createdAt, ...r, username: s.username || STATE.currentUser?.username };
         } catch (e) { return s; }
       }
@@ -8211,13 +8315,16 @@ ${pdfText}`;
       empty.style.display = 'none';
       list.innerHTML = mySessions.map((s, i) => {
         const date = new Date(s.date || s.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-        const level = s.level || 'green';
+        const level = s.type === 'medical-test' ? (s.statusClass || 'green') : (s.level || 'green');
+        const title = s.type === 'medical-test' ? (s.badge || s.details || 'تحليل طبي') : (s.condition || s.details || 'Assessment');
+        const meta = s.type === 'medical-test' ? (s.status || 'مكتمل') : `${date} · <span style="text-transform:capitalize;">${level}</span> urgency`;
+        const icon = s.type === 'medical-test' ? '<i class="ti ti-report-medical" style="color:var(--primary);font-size:1.1rem;"></i>' : '';
         return `
         <div class="history-card ${level}" data-index="${i}">
           <div class="hc-info">
-            <span class="hc-title">${s.condition || s.details || 'Assessment'}</span>
-            <span class="hc-meta">${date} · <span style="text-transform:capitalize;">${level}</span> urgency</span>
-            <span class="hc-symptom">${s.symptom || s.details || ''}</span>
+            <span class="hc-title">${icon} ${title}</span>
+            <span class="hc-meta">${date} · ${meta}</span>
+            <span class="hc-symptom">${s.type === 'medical-test' ? (s.analysis ? s.analysis.substring(0, 80) + '...' : '') : (s.symptom || s.details || '')}</span>
           </div>
           <div class="hc-actions">
             <button class="icon-btn view-btn" data-index="${i}" title="عرض الجلسة">
@@ -8260,6 +8367,31 @@ ${pdfText}`;
       const s = mySessions[localIdx];
       STATE.modalSessionIndex = localIdx;
 
+      if (s.type === 'medical-test') {
+        const level = s.statusClass || 'green';
+        const date = new Date(s.date || s.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+
+        const badge = document.getElementById('modalUrgency');
+        badge.innerHTML = level === 'red' ? '<i class="ti ti-alert-triangle"></i> ' + (s.status || 'غير طبيعي') : level === 'orange' ? '<i class="ti ti-alert-triangle"></i> ' + (s.status || 'متابعة') : '<i class="ti ti-circle-check"></i> ' + (s.status || 'طبيعي');
+        badge.style.background = level === 'red' ? 'var(--red)' : level === 'orange' ? 'var(--orange)' : 'var(--green)';
+        badge.style.color = '#fff';
+
+        document.getElementById('modalTitle').textContent = s.badge || s.details || 'تحليل طبي';
+        document.getElementById('modalMeta').textContent = `محفوظ في ${date}`;
+        document.getElementById('modalSymptom').parentElement.style.display = 'none';
+        document.getElementById('modalTranscript').parentElement.style.display = 'none';
+        document.getElementById('modalDesc').parentElement.querySelector('h4').innerHTML = '<i class="ti ti-notes"></i> الشرح والتحليل';
+        document.getElementById('modalDesc').textContent = s.analysis || '';
+        document.getElementById('modalDesc').style.whiteSpace = 'pre-wrap';
+
+        const recs = s.advices || [];
+        document.getElementById('modalRecs').innerHTML = recs.map(a =>
+          `<li><strong>${a.title}</strong>${a.desc ? ': ' + a.desc : ''}</li>`
+        ).join('');
+        document.getElementById('historyModal').classList.add('open');
+        return;
+      }
+
       const level = s.level || 'green';
       const date = new Date(s.date || s.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
 
@@ -8267,6 +8399,11 @@ ${pdfText}`;
       badge.innerHTML = level === 'red' ? '<i class="ti ti-urgent" style="color:var(--red)"></i> طارئ' : level === 'orange' ? '<i class="ti ti-alert-triangle" style="color:var(--orange)"></i> معتدل' : '<i class="ti ti-circle-check" style="color:var(--green)"></i> خفيف';
       badge.style.background = level === 'red' ? 'var(--red)' : level === 'orange' ? 'var(--orange)' : 'var(--green)';
       badge.style.color = '#fff';
+
+      document.getElementById('modalSymptom').parentElement.style.display = '';
+      document.getElementById('modalTranscript').parentElement.style.display = '';
+      document.getElementById('modalDesc').parentElement.querySelector('h4').innerHTML = '<i class="ti ti-clipboard"></i> تشخيص الفحص والتحليل السريري';
+      document.getElementById('modalDesc').style.whiteSpace = '';
 
       document.getElementById('modalTitle').textContent = s.condition || 'Assessment';
       document.getElementById('modalMeta').textContent = `Saved on ${date}`;
@@ -8303,8 +8440,14 @@ ${pdfText}`;
       const mySessions = STATE.sessions.map(parseSession);
       const s = mySessions[STATE.modalSessionIndex];
       if (!s) return;
-      const level = s.level || 'green';
-      const text = `=== TABIBAK TRIAGE REPORT ===\n\nSymptom: ${s.symptom || ''}\nUrgency: ${level.toUpperCase()}\nCondition: ${s.condition || 'Assessment'}\n\nAssessment:\n${s.desc || ''}\n\nRecommendations:\n${(s.recs || []).map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\nGenerated: ${new Date(s.date || s.createdAt).toLocaleString()}\n\n⚠️ AI-generated — not a clinical diagnosis.`;
+      let text;
+      if (s.type === 'medical-test') {
+        const date = new Date(s.date || s.createdAt).toLocaleString('ar-EG');
+        text = `=== طبيبك — تقرير تحليل طبي ===\n\nنوع التحليل: ${s.badge || '—'}\nالحالة: ${s.status || '—'}\nالتاريخ: ${date}\n\nالتحليل:\n${s.analysis || ''}\n\nالتوصيات:\n${(s.advices || []).map((a, i) => `${i + 1}. ${a.title}${a.desc ? ': ' + a.desc : ''}`).join('\n')}\n\n⚠️ تم الإنشاء بواسطة الذكاء الاصطناعي — ليس تشخيصاً طبياً.`;
+      } else {
+        const level = s.level || 'green';
+        text = `=== TABIBAK TRIAGE REPORT ===\n\nSymptom: ${s.symptom || ''}\nUrgency: ${level.toUpperCase()}\nCondition: ${s.condition || 'Assessment'}\n\nAssessment:\n${s.desc || ''}\n\nRecommendations:\n${(s.recs || []).map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\nGenerated: ${new Date(s.date || s.createdAt).toLocaleString()}\n\n⚠️ AI-generated — not a clinical diagnosis.`;
+      }
       navigator.clipboard.writeText(text).catch(() => { });
       document.getElementById('modalCopyBtn').textContent = '✓ تم النسخ!';
       setTimeout(() => document.getElementById('modalCopyBtn').textContent = 'نسخ التقرير', 2000);
@@ -8571,6 +8714,7 @@ ${pdfText}`;
     renderDoseSlots(1);
   </script>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 </body>
