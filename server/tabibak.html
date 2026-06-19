@@ -4549,6 +4549,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
     <!-- ============================================================
        SCREEN 6 — BMI CALCULATOR
        ============================================================ -->
+    <main id="screen-bmi" class="screen">
 
       <div class="glass">
         <div class="bmi-header">
@@ -7984,6 +7985,7 @@ ${pdfText}`;
       printWin.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>طبيبك - تقرير تحليل طبي</title>
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+      ${resultData.badge ? `<meta name="title" content="${resultData.badge.replace(/[<>]/g, '')}">` : ''}
       <style>
         @page { margin: 1.5cm; size: A4; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
