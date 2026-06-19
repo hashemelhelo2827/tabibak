@@ -61,8 +61,8 @@ function startScheduler() {
         const tz = Number(row.tzOffset);
         // Convert target UTC time to user's local time
         const targetLocal = new Date(targetUtc.getTime() + tz * 3600000);
-        const targetHH = String(targetLocal.getHours()).padStart(2, '0');
-        const targetMM = String(targetLocal.getMinutes()).padStart(2, '0');
+        const targetHH = String(targetLocal.getUTCHours()).padStart(2, '0');
+        const targetMM = String(targetLocal.getUTCMinutes()).padStart(2, '0');
         const targetTime = `${targetHH}:${targetMM}`;
 
         if (row.doseTime !== targetTime) continue;

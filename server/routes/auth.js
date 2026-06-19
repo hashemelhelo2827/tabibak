@@ -12,6 +12,11 @@ router.post('/register', async (req, res) => {
     if (!username || !password || !name) {
       return res.status(400).json({ error: 'Username, password, and name are required' });
     }
+    // Strong password regex check
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long, contain at least one lowercase letter, one uppercase letter, one number, and one special character.' });
+    }
     const db = await getDb();
     const existing = await db.execute({ sql: 'SELECT username FROM users WHERE username = ?', args: [username] });
     if (existing.rows.length > 0) {
@@ -184,8 +189,8 @@ router.put('/profile', authenticateToken, async (req, res) => {
     const { name, age, gender, mobile, history, timezoneOffset } = req.body;
     const db = await getDb();
     await db.execute({
-      sql: 'UPDATE users SET name = ?, age = ?, gender = ?, mobile = ?, history = ?, timezoneOffset = ? WHERE username = ?',
-      args: [name, age || null, gender || null, mobile || null, history || '', timezoneOffset ?? 0, req.user.username],
+      sql: 'UPDATE users SET name = ?, age = ?, gender = ?, mobile = ?, history = ?, timezoneOffset = COALESCE(?, timezoneOffset) WHERE username = ?',
+      args: [name, age || null, gender || null, mobile || null, history || '', timezoneOffset !== undefined ? timezoneOffset : null, req.user.username],
     });
     res.json({ message: 'Profile updated' });
   } catch (err) {
