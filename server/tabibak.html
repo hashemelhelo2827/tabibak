@@ -5415,6 +5415,9 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       medicalTest: {
         apiKey: '',
         selectedImage: null, // base64 string
+        selectedFileIsPdf: false,
+        selectedFileName: '',
+        extractedText: '',
       },
       bmi: null,
       meds: {
@@ -7599,6 +7602,44 @@ ${valuesText}
       throw lastError || new Error('فشلت جميع المحاولات');
     }
 
+    async function analyzePdfText(pdfText, apiKey) {
+      const prompt = `أنت أخصائي تحاليل طبية خبير واستشاري سريري. إليك النص المستخرج من ملف PDF لتقرير تحاليل طبية:
+
+${pdfText}
+
+حلل هذه القيم بدقة. أجب بصيغة JSON صالحة 100% فقط:
+{
+  "badge": "عنوان قصير لنوع الفحص أو التحليل المكتشف",
+  "status": "طبيعي أو غير طبيعي / يحتاج متابعة أو مراجعة طبية عاجلة",
+  "statusClass": "green أو orange أو red",
+  "analysis": "شرح تفصيلي بالعربية لكل قيمة غير طبيعية وتفسيرها السريري. اذكر كل قيمة غير طبيعية بالقيمة الرقمية والنطاق الطبيعي.",
+  "advices": [{ "title": "عنوان", "desc": "شرح" }]
+}`;
+
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          temperature: 0.3,
+          max_tokens: 2000,
+          messages: [{ role: 'system', content: 'أنت أخصائي تحاليل طبية خبير. أجب بـ JSON فقط.' }, { role: 'user', content: prompt }]
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || 'فشل تحليل النص');
+      }
+      const data = await res.json();
+      const raw = data.choices?.[0]?.message?.content;
+      if (!raw) throw new Error('لم يرد خادم التحليل');
+      let clean = raw.replace(/```json|```/g, '').trim();
+      const startIdx = clean.indexOf('{');
+      const endIdx = clean.lastIndexOf('}');
+      if (startIdx !== -1 && endIdx !== -1) clean = clean.substring(startIdx, endIdx + 1);
+      return JSON.parse(clean);
+    }
+
     async function convertPdfToImage(pdfDataUrl) {
       try {
         const pdfjsLib = window.pdfjsLib;
@@ -7681,6 +7722,27 @@ ${valuesText}
         STATE.medicalTest.selectedImage = reader.result;
         STATE.medicalTest.selectedFileIsPdf = isPdf;
         STATE.medicalTest.selectedFileName = file.name;
+        STATE.medicalTest.extractedText = '';
+
+        // If PDF, extract text directly
+        if (isPdf) {
+          try {
+            const pdfjsLib = window.pdfjsLib;
+            if (pdfjsLib) {
+              pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+              const pdf = await pdfjsLib.getDocument(reader.result).promise;
+              let fullText = '';
+              for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                fullText += content.items.map(item => item.str).join(' ') + '\n';
+              }
+              STATE.medicalTest.extractedText = fullText.trim();
+            }
+          } catch (err) {
+            console.warn('PDF text extraction failed:', err);
+          }
+        }
 
         const pdfPreview = document.getElementById('medicalTestPdfPreview');
         const pdfNameEl = document.getElementById('medicalTestPdfName');
@@ -7708,6 +7770,7 @@ ${valuesText}
       STATE.medicalTest.selectedImage = null;
       STATE.medicalTest.selectedFileIsPdf = false;
       STATE.medicalTest.selectedFileName = '';
+      STATE.medicalTest.extractedText = '';
       previewImg.src = '';
       previewImg.style.display = '';
       document.getElementById('medicalTestPdfPreview').style.display = 'none';
@@ -7745,12 +7808,18 @@ ${valuesText}
         loadingEl.style.display = '';
 
         try {
-          let imageToSend = STATE.medicalTest.selectedImage;
-          if (STATE.medicalTest.selectedFileIsPdf) {
-            imageToSend = await convertPdfToImage(imageToSend);
-            if (!imageToSend) throw new Error('تعذر تحويل PDF إلى صورة');
+          let resultData;
+          if (STATE.medicalTest.selectedFileIsPdf && STATE.medicalTest.extractedText) {
+            // PDF with extracted text → text-only analysis (no vision)
+            resultData = await analyzePdfText(STATE.medicalTest.extractedText, apiKey);
+          } else {
+            let imageToSend = STATE.medicalTest.selectedImage;
+            if (STATE.medicalTest.selectedFileIsPdf) {
+              imageToSend = await convertPdfToImage(imageToSend);
+              if (!imageToSend) throw new Error('تعذر تحويل PDF إلى صورة');
+            }
+            resultData = await getMedicalTestRecsFromAI(imageToSend, apiKey);
           }
-          const resultData = await getMedicalTestRecsFromAI(imageToSend, apiKey);
 
           document.getElementById('medicalTestDetectedName').textContent = resultData.badge || 'غير محدد';
 
