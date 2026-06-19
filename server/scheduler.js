@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const admin = require('firebase-admin');
+const { getMessaging } = require('firebase-admin/messaging');
 const { getDb } = require('./db');
 
 let schedulerStarted = false;
@@ -19,8 +20,11 @@ function startScheduler() {
   let fcmReady = false;
   if (serviceAccount.projectId && serviceAccount.clientEmail && serviceAccount.privateKey) {
     try {
+      let app;
       if (admin.apps && admin.apps.length === 0) {
-        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+        app = admin.initializeApp({ credential: admin.cert(serviceAccount) });
+      } else {
+        app = admin.apps[0];
       }
       fcmReady = true;
       console.log('Firebase Admin initialized for push notifications');
@@ -88,7 +92,7 @@ function startScheduler() {
 
         let sendSucceeded = false;
         try {
-          await admin.messaging().send({
+          await getMessaging(app).send({
             token: row.fcmToken,
             data: {
               title: 'تذكير بالدواء',

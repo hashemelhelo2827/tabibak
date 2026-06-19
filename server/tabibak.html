@@ -6000,9 +6000,8 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
         fcmMessaging = firebase.messaging();
         console.log('Firebase initialized for FCM');
 
-        fcmMessaging.onTokenRefresh(async () => {
+        fcmMessaging.onToken(async (currentToken) => {
           try {
-            const currentToken = await fcmMessaging.getToken({ vapidKey: '8Ucn8W54F07Fmc5ec2Kn_bd8RisbdkkmWQHh4SM_K3s' });
             if (currentToken) {
               const token = getToken();
               if (token) {
@@ -6083,6 +6082,15 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
 
     document.getElementById('fcmEnableBtn').addEventListener('click', requestNotifPermission);
     document.getElementById('fcmTestBtn').addEventListener('click', triggerTestNotification);
+
+    // Listen for messages from the service worker (e.g. notification click -> show meds)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.action === 'showMeds') {
+          showTab('meds');
+        }
+      });
+    }
 
     /* ================================================================
        TRIAGE CHAT ENGINE

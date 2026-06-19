@@ -46,3 +46,26 @@ messaging.onBackgroundMessage((payload) => {
   // Show the notification on the device
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });
+
+// Handle user clicking the notification — open/focus the app and navigate to medications
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const medicationId = event.notification.data?.medicationId;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // If the app is already open, focus it and tell it to show the meds screen
+      for (const client of clientList) {
+        if (client.url.includes('tabibak.html') && 'focus' in client) {
+          client.postMessage({ action: 'showMeds', medicationId });
+          return client.focus();
+        }
+      }
+      // Otherwise open the app in a new window
+      if (clients.openWindow) {
+        return clients.openWindow('/tabibak.html');
+      }
+    })
+  );
+});
