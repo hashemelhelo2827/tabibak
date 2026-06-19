@@ -6807,8 +6807,8 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       const current = STATE.currentTab;
       let idx = navOrder.indexOf(current);
       if (idx === -1) idx = 0;
-      if (diff > 0) idx = Math.max(idx - 1, 0);  // swipe left → previous tab (right side)
-      else idx = Math.min(idx + 1, navOrder.length - 1);  // swipe right → next tab (left side)
+      if (diff > 0) idx = Math.min(idx + 1, navOrder.length - 1);  // swipe left → next tab
+      else idx = Math.max(idx - 1, 0);                               // swipe right → prev tab
       showTab(navOrder[idx]);
     }, { passive: true });
 
