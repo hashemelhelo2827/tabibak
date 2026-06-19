@@ -7465,7 +7465,7 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'llama-3.2-90b-vision-preview', // 90b is better for complex medical reasoning
+         model: 'meta-llama/llama-4-scout-17b-16e-instruct',
           temperature: 0.3,
           max_tokens: 1500,
           messages: [
