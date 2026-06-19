@@ -6006,7 +6006,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
             if (currentToken) {
               const token = getToken();
               if (token) {
-                await api('POST', '/api/notifications/store-token', { fcmToken: currentToken });
+                await api('POST', '/api/notifications/store-token', { fcmToken: currentToken, timezoneOffset: -new Date().getTimezoneOffset() / 60 });
               }
             }
           } catch (err) {
