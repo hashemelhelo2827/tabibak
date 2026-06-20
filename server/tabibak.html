@@ -2073,6 +2073,35 @@
       flex-shrink: 0;
     }
 
+    .history-filter-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .history-filter-bar button {
+      padding: 0.45rem 1rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-1);
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all var(--speed);
+      font-family: var(--font-body);
+    }
+
+    .history-filter-bar button:hover {
+      background: var(--primary-glow);
+    }
+
+    .history-filter-bar button.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
     .icon-btn {
       background: var(--input-bg);
       border: 1px solid var(--border);
@@ -4508,6 +4537,15 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
             <button class="btn btn-primary" id="foodChatSendBtn" style="white-space:nowrap;">إرسال</button>
           </div>
         </div>
+
+        <div id="foodActions" style="display:none;margin-top:1rem;gap:0.5rem;flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="foodSaveBtn" style="flex:1;">
+            <i class="ti ti-device-floppy"></i> حفظ في السجل
+          </button>
+          <button class="btn btn-secondary" id="foodPdfBtn" style="flex:1;">
+            <i class="ti ti-file-text"></i> PDF
+          </button>
+        </div>
       </div>
 
       <div id="foodError" style="display:none;" class="food-error">
@@ -4900,11 +4938,17 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
           <h2 style="font-size:1.75rem;">تقييماتك المحفوظة</h2>
           <p style="color:var(--text-muted);">انقر على أي جلسة لعرض التفاصيل الكاملة.</p>
         </div>
+        <div class="history-filter-bar" id="historyFilterBar">
+          <button class="active" data-filter="all">الكل</button>
+          <button data-filter="triage">فحص طبي</button>
+          <button data-filter="medical-test">تحاليل</button>
+          <button data-filter="nutrition">تغذية</button>
+        </div>
         <div class="history-list" id="historyList"></div>
         <div id="historyEmpty" class="glass text-center-panel" style="display:none;">
           <span class="panel-icon"><i class="ti ti-clipboard"></i></span>
           <h3>لا توجد جلسات محفوظة</h3>
-          <p>قم بإجراء فحص طبي أو تحليل مخبري لرؤيته محفوظاً هنا.</p>
+          <p>قم بإجراء فحص طبي أو تحليل مخبري أو استشارة غذائية لرؤيتها محفوظة هنا.</p>
           <button class="btn btn-primary" id="historyStartBtn" style="margin-top:1rem;">ابدأ جلسة فحص</button>
         </div>
       </div>
@@ -5253,10 +5297,18 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
           <h4>✦ الخطوات التالية والتوصيات</h4>
           <ul class="rec-list" id="modalRecs"></ul>
         </div>
+
+        <div class="modal-section" id="modalFoodSection" style="display:none;">
+          <h4><i class="ti ti-salad"></i> التوصيات الغذائية</h4>
+          <div id="modalFoodCards"></div>
+        </div>
       </div>
 
       <div class="modal-actions">
         <button class="btn btn-primary" id="modalCopyBtn">نسخ التقرير</button>
+        <button class="btn btn-secondary" id="modalPdfBtn" style="display:none;">
+          <i class="ti ti-file-text"></i> PDF
+        </button>
         <button class="btn btn-secondary" id="modalDeleteBtn"
           style="color:var(--red);border-color:var(--red-border);">حذف الجلسة</button>
       </div>
@@ -5503,6 +5555,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
         currentData: null, // last fetched food recommendations (full JSON)
         currentMood: '',   // the mood/query that was used
         chatLog: [],       // [{ role: 'user'|'assistant', text: '...' }]
+        savedSessionId: null, // id of the saved session in STATE.sessions
       },
       medicalTest: {
         apiKey: '',
@@ -7500,6 +7553,7 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
         document.getElementById('foodChatInput').value = '';
       }
       document.getElementById('foodChatArea').style.display = '';
+      document.getElementById('foodActions').style.display = 'flex';
     }
 
     async function fetchFoodRecommendations(mood) {
@@ -7507,8 +7561,10 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
       document.getElementById('foodResults').style.display = 'none';
       document.getElementById('foodError').style.display = 'none';
       document.getElementById('foodChatArea').style.display = 'none';
+      document.getElementById('foodActions').style.display = 'none';
       STATE.food.chatLog = [];
       STATE.food.currentMood = mood;
+      STATE.food.savedSessionId = null;
       try {
         let data;
         if (STATE.food.apiKey) {
@@ -7519,6 +7575,7 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
         }
         STATE.food.currentData = data;
         renderFoodCards(data);
+        if (STATE.currentUser) saveFoodSession();
       } catch (e) {
         document.getElementById('foodErrorMsg').textContent = `خطأ: ${e.message}. جاري عرض التوصيات المدمجة.`;
         document.getElementById('foodError').style.display = '';
@@ -7526,6 +7583,7 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
         const fallback = FOOD_FALLBACK[mood] || FOOD_FALLBACK['default'];
         STATE.food.currentData = fallback;
         renderFoodCards(fallback);
+        if (STATE.currentUser) saveFoodSession();
       } finally {
         document.getElementById('foodLoading').style.display = 'none';
       }
@@ -7550,6 +7608,7 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
     document.getElementById('foodResetBtn').addEventListener('click', () => {
       document.getElementById('foodResults').style.display = 'none';
       document.getElementById('foodChatArea').style.display = 'none';
+      document.getElementById('foodActions').style.display = 'none';
       document.getElementById('foodError').style.display = 'none';
       document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
       document.getElementById('foodCustomInput').value = '';
@@ -7557,6 +7616,7 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
       STATE.food.currentData = null;
       STATE.food.currentMood = '';
       STATE.food.chatLog = [];
+      STATE.food.savedSessionId = null;
     });
 
     async function handleFoodChat() {
@@ -7690,6 +7750,22 @@ ${JSON.stringify(currentData, null, 2)}
         chatLog.appendChild(botMsg);
         chatLog.scrollTop = chatLog.scrollHeight;
 
+        // Update the saved session in-memory
+        if (STATE.food.savedSessionId) {
+          const idx = STATE.sessions.findIndex(s => s.id === STATE.food.savedSessionId);
+          if (idx !== -1) {
+            const updatedResult = JSON.stringify({
+              badge: updatedData.badge || '',
+              analysis: updatedData.analysis || '',
+              drugWarnings: updatedData.drugWarnings || [],
+              cards: updatedData.cards || [],
+              mood: STATE.food.currentMood || '',
+              chatLog: STATE.food.chatLog || [],
+            });
+            STATE.sessions[idx] = { ...STATE.sessions[idx], result: updatedResult, details: updatedData.badge || 'توصيات غذائية' };
+          }
+        }
+
         // Re-render food cards with updated data
         renderFoodCards(updatedData, false);
 
@@ -7709,6 +7785,74 @@ ${JSON.stringify(currentData, null, 2)}
     document.getElementById('foodChatInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') handleFoodChat();
     });
+
+    document.getElementById('foodSaveBtn').addEventListener('click', async () => {
+      if (!STATE.currentUser) {
+        document.getElementById('foodSaveBtn').innerHTML = '<i class="ti ti-device-floppy"></i> سجّل الدخول أولاً';
+        setTimeout(() => document.getElementById('foodSaveBtn').innerHTML = '<i class="ti ti-device-floppy"></i> حفظ في السجل', 2000);
+        return;
+      }
+      await saveFoodSession();
+      document.getElementById('foodSaveBtn').innerHTML = '<i class="ti ti-check"></i> تم الحفظ!';
+      setTimeout(() => document.getElementById('foodSaveBtn').innerHTML = '<i class="ti ti-device-floppy"></i> حفظ في السجل', 3000);
+    });
+
+    document.getElementById('foodPdfBtn').addEventListener('click', exportFoodPDF);
+
+    function exportFoodPDF() {
+      const data = STATE.food.currentData;
+      if (!data) return;
+      const user = STATE.currentUser;
+      const date = new Date().toLocaleDateString('ar-EG', { day: '2-digit', month: 'long', year: 'numeric' });
+      const time = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+
+      const cardsHtml = data.cards.map(card => {
+        const items = card.items.map(item => {
+          const name = typeof item === 'object' ? item.name : item;
+          const reason = typeof item === 'object' ? item.reason : '';
+          return `<li><strong>${name}</strong>${reason ? `<br><small>${reason}</small>` : ''}</li>`;
+        }).join('');
+        return `<div style="margin-bottom:1.5rem;page-break-inside:avoid;">
+          <h3 style="color:#2b6cb0;margin-bottom:0.5rem;font-size:1.1rem;">${card.icon || ''} ${card.title}</h3>
+          <ul style="margin:0;padding-right:1.5rem;">${items}</ul>
+        </div>`;
+      }).join('');
+
+      const chatHtml = (STATE.food.chatLog || []).map(m =>
+        `<p style="margin:0.3rem 0;padding:0.3rem 0.6rem;background:${m.role === 'user' ? '#e8f0fe' : '#f5f5f5'};border-radius:6px;"><strong>${m.role === 'user' ? 'المستخدم' : 'المساعد'}:</strong> ${m.text}</p>`
+      ).join('');
+
+      const win = window.open('', '_blank');
+      win.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير التوجيه الغذائي</title>
+        <style>
+          @page { margin: 1.5cm; }
+          body { font-family: 'Cairo', Arial, sans-serif; color: #1a1a2e; line-height: 1.7; max-width: 700px; margin: auto; padding: 20px; }
+          h1 { color: #2b6cb0; border-bottom: 2px solid #2b6cb0; padding-bottom: 8px; font-size: 22px; }
+          h2 { color: #1e4e8c; font-size: 16px; margin-top: 1rem; }
+          .meta { color: #666; font-size: 13px; margin-bottom: 1.5rem; }
+          .analysis { background: #f0f7ff; padding: 12px; border-radius: 8px; margin-bottom: 1.5rem; }
+          .warnings { background: #fff3cd; padding: 12px; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #ffc107; }
+          .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-align: center; }
+          ul { margin: 0.3rem 0; padding-right: 1.5rem; }
+          li { margin-bottom: 0.4rem; }
+          small { color: #666; font-size: 12px; }
+        </style></head><body>
+        <h1>🍽️ تقرير التوجيه الغذائي</h1>
+        <div class="meta">
+          <p>التاريخ: ${date} ${time}</p>
+          ${user?.name ? `<p>المريض: ${user.name}</p>` : ''}
+          ${data.badge ? `<p>الخطة: ${data.badge}</p>` : ''}
+        </div>
+        ${data.analysis ? `<div class="analysis"><strong>التحليل السريري:</strong><br>${data.analysis}</div>` : ''}
+        ${data.drugWarnings && data.drugWarnings.length > 0 && !data.drugWarnings.every(w => w.includes('لا توجد')) ? `<div class="warnings"><strong>⚠️ تحذيرات دوائية:</strong><br>${data.drugWarnings.join('<br>')}</div>` : ''}
+        <h2>التوصيات الغذائية</h2>
+        ${cardsHtml}
+        ${chatHtml ? `<h2 style="margin-top:1.5rem;">💬 سجل التعديلات</h2>${chatHtml}` : ''}
+        <div class="footer">تم الإنشاء بواسطة طبيبك — الذكاء الاصطناعي المساعد للرعاية الصحية<br>هذا التقرير ليس تشخيصاً طبياً بديلاً عن استشارة الطبيب المختص.</div>
+        <script>window.print();window.close();<\/script>
+      </body></html>`);
+      win.document.close();
+    }
 
     // API key is set in STATE.food.apiKey — no user UI needed
 
@@ -8265,6 +8409,33 @@ ${pdfText}`;
       }
     }
 
+    async function saveFoodSession() {
+      if (!STATE.currentUser) return;
+      const foodData = STATE.food.currentData;
+      if (!foodData) return;
+      const session = {
+        type: 'nutrition',
+        result: JSON.stringify({
+          badge: foodData.badge || '',
+          analysis: foodData.analysis || '',
+          drugWarnings: foodData.drugWarnings || [],
+          cards: foodData.cards || [],
+          mood: STATE.food.currentMood || '',
+          chatLog: STATE.food.chatLog || [],
+        }),
+        details: foodData.badge || 'توصيات غذائية',
+      };
+      try {
+        const saved = await api('POST', '/api/sessions', session);
+        STATE.sessions.unshift(saved);
+        STATE.food.savedSessionId = saved.id;
+      } catch (e) {
+        const fallback = { id: Date.now(), ...session, createdAt: new Date().toISOString() };
+        STATE.sessions.unshift(fallback);
+        STATE.food.savedSessionId = fallback.id;
+      }
+    }
+
     document.getElementById('medicalTestSaveBtn').addEventListener('click', async () => {
       const resultData = STATE.medicalTest.lastResult;
       if (!resultData) return;
@@ -8599,11 +8770,16 @@ ${pdfText}`;
           if (s.type === 'medical-test') {
             return { ...s, date: s.createdAt, badge: r.badge, status: r.status, statusClass: r.statusClass, analysis: r.analysis, advices: r.advices, username: s.username || STATE.currentUser?.username };
           }
+          if (s.type === 'nutrition') {
+            return { ...s, date: s.createdAt, badge: r.badge, analysis: r.analysis, drugWarnings: r.drugWarnings, cards: r.cards, foodMood: r.mood, foodChatLog: r.chatLog, username: s.username || STATE.currentUser?.username };
+          }
           return { ...s, date: s.createdAt, ...r, username: s.username || STATE.currentUser?.username };
         } catch (e) { return s; }
       }
       return s;
     }
+
+    let historyActiveFilter = 'all';
 
     function refreshHistoryScreen() {
       const loggedIn = !!STATE.currentUser;
@@ -8611,7 +8787,19 @@ ${pdfText}`;
       document.getElementById('historyLoggedIn').style.display = loggedIn ? '' : 'none';
       if (!loggedIn) return;
 
-      const mySessions = STATE.sessions.map(parseSession);
+      const allSessions = STATE.sessions.map(parseSession);
+      const mySessions = historyActiveFilter === 'all' ? allSessions : allSessions.filter(s => s.type === historyActiveFilter);
+
+      // Update filter counts
+      const counts = { all: allSessions.length, triage: 0, 'medical-test': 0, nutrition: 0 };
+      allSessions.forEach(s => { if (counts[s.type] !== undefined) counts[s.type]++; });
+      document.querySelectorAll('#historyFilterBar button').forEach(btn => {
+        const f = btn.dataset.filter;
+        const count = counts[f] || 0;
+        btn.textContent = f === 'all' ? `الكل (${count})` : f === 'triage' ? `فحص طبي (${count})` : f === 'medical-test' ? `تحاليل (${count})` : f === 'nutrition' ? `تغذية (${count})` : btn.dataset.filter;
+        btn.classList.toggle('active', f === historyActiveFilter);
+      });
+
       const list = document.getElementById('historyList');
       const empty = document.getElementById('historyEmpty');
 
@@ -8623,23 +8811,44 @@ ${pdfText}`;
 
       empty.style.display = 'none';
       list.innerHTML = mySessions.map((s, i) => {
+        const realIdx = allSessions.indexOf(s);
         const date = new Date(s.date || s.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-        const level = s.type === 'medical-test' ? (s.statusClass || 'green') : (s.level || 'green');
-        const title = s.type === 'medical-test' ? (s.badge || s.details || 'تحليل طبي') : (s.condition || s.details || 'Assessment');
-        const meta = s.type === 'medical-test' ? (s.status || 'مكتمل') : `${date} · <span style="text-transform:capitalize;">${level}</span> urgency`;
-        const icon = s.type === 'medical-test' ? '<i class="ti ti-report-medical" style="color:var(--primary);font-size:1.1rem;"></i>' : '';
+        let level = 'green';
+        if (s.type === 'medical-test') level = s.statusClass || 'green';
+        else if (s.type === 'nutrition') level = 'green';
+        else level = s.level || 'green';
+
+        let title = s.details || 'تقييم';
+        if (s.type === 'medical-test') title = s.badge || s.details || 'تحليل طبي';
+        else if (s.type === 'nutrition') title = s.badge || s.details || 'توصيات غذائية';
+        else title = s.condition || s.details || 'Assessment';
+
+        let meta = '';
+        if (s.type === 'medical-test') meta = s.status || 'مكتمل';
+        else if (s.type === 'nutrition') meta = 'تغذية';
+        else meta = `${date} · <span style="text-transform:capitalize;">${level}</span>`;
+
+        let icon = '';
+        if (s.type === 'medical-test') icon = '<i class="ti ti-report-medical" style="color:var(--primary);font-size:1.1rem;"></i>';
+        else if (s.type === 'nutrition') icon = '<i class="ti ti-salad" style="color:var(--primary);font-size:1.1rem;"></i>';
+
+        let preview = '';
+        if (s.type === 'medical-test') preview = s.analysis ? s.analysis.substring(0, 80) + '...' : '';
+        else if (s.type === 'nutrition') preview = s.analysis ? s.analysis.substring(0, 80) + '...' : (s.foodMood || '');
+        else preview = s.symptom || s.details || '';
+
         return `
-        <div class="history-card ${level}" data-index="${i}">
+        <div class="history-card ${level}" data-index="${realIdx}">
           <div class="hc-info">
             <span class="hc-title">${icon} ${title}</span>
             <span class="hc-meta">${date} · ${meta}</span>
-            <span class="hc-symptom">${s.type === 'medical-test' ? (s.analysis ? s.analysis.substring(0, 80) + '...' : '') : (s.symptom || s.details || '')}</span>
+            <span class="hc-symptom">${preview}</span>
           </div>
           <div class="hc-actions">
-            <button class="icon-btn view-btn" data-index="${i}" title="عرض الجلسة">
+            <button class="icon-btn view-btn" data-index="${realIdx}" title="عرض الجلسة">
               <svg style="width:16px;height:16px;"><use href="#icon-eye"/></svg>
             </button>
-            <button class="icon-btn del-btn" data-index="${i}" title="حذف الجلسة">
+            <button class="icon-btn del-btn" data-index="${realIdx}" title="حذف الجلسة">
               <svg style="width:16px;height:16px;"><use href="#icon-trash"/></svg>
             </button>
           </div>
@@ -8660,6 +8869,14 @@ ${pdfText}`;
       });
     }
 
+    // Filter bar handlers
+    document.querySelectorAll('#historyFilterBar button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        historyActiveFilter = btn.dataset.filter;
+        refreshHistoryScreen();
+      });
+    });
+
     async function deleteSession(localIdx) {
       const mySessions = STATE.sessions.map(parseSession);
       const s = mySessions[localIdx];
@@ -8675,6 +8892,10 @@ ${pdfText}`;
       const mySessions = STATE.sessions.map(parseSession);
       const s = mySessions[localIdx];
       STATE.modalSessionIndex = localIdx;
+
+      // Hide nutrition-specific sections by default
+      document.getElementById('modalFoodSection').style.display = 'none';
+      document.getElementById('modalPdfBtn').style.display = 'none';
 
       if (s.type === 'medical-test') {
         const level = s.statusClass || 'green';
@@ -8697,6 +8918,58 @@ ${pdfText}`;
         document.getElementById('modalRecs').innerHTML = recs.map(a =>
           `<li><strong>${a.title}</strong>${a.desc ? ': ' + a.desc : ''}</li>`
         ).join('');
+        document.getElementById('historyModal').classList.add('open');
+        return;
+      }
+
+      if (s.type === 'nutrition') {
+        const date = new Date(s.date || s.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+
+        const badge = document.getElementById('modalUrgency');
+        badge.innerHTML = '<i class="ti ti-salad"></i> تغذية';
+        badge.style.background = 'var(--primary)';
+        badge.style.color = '#fff';
+
+        document.getElementById('modalTitle').textContent = s.badge || s.details || 'توصيات غذائية';
+        document.getElementById('modalMeta').textContent = `محفوظ في ${date}` + (s.foodMood ? ` · الحالة: ${s.foodMood}` : '');
+        document.getElementById('modalSymptom').parentElement.style.display = 'none';
+        document.getElementById('modalTranscript').parentElement.style.display = 'none';
+        document.getElementById('modalDesc').parentElement.querySelector('h4').innerHTML = '<i class="ti ti-notes"></i> التحليل السريري';
+        document.getElementById('modalDesc').textContent = s.analysis || '';
+        document.getElementById('modalDesc').style.whiteSpace = 'pre-wrap';
+
+        const recs = [];
+        document.getElementById('modalRecs').innerHTML = '';
+
+        // Render food cards in modal
+        const cards = s.cards || [];
+        document.getElementById('modalFoodCards').innerHTML = cards.map(card => {
+          let iconHtml = card.icon || '';
+          if (iconHtml && !iconHtml.includes('<')) iconHtml = `<span>${card.icon}</span>`;
+          const items = (card.items || []).map(item => {
+            const name = typeof item === 'object' ? item.name : item;
+            const reason = typeof item === 'object' ? item.reason : '';
+            return `<li><strong>${name}</strong>${reason ? `<br><small style="color:var(--text-2);">${reason}</small>` : ''}</li>`;
+          }).join('');
+          return `<div style="margin-bottom:1rem;padding:0.75rem;background:var(--bg-surface);border-radius:12px;border:1px solid var(--border);">
+            <div style="font-weight:600;margin-bottom:0.5rem;">${iconHtml} ${card.title}</div>
+            <ul style="margin:0;padding-right:1.25rem;list-style:disc;">${items}</ul>
+          </div>`;
+        }).join('');
+        document.getElementById('modalFoodSection').style.display = '';
+
+        // Show chat transcript if there were modifications
+        const foodChat = s.foodChatLog || [];
+        if (foodChat.length > 0) {
+          document.getElementById('modalTranscript').parentElement.style.display = '';
+          document.getElementById('modalTranscript').innerHTML = foodChat.map(m =>
+            `<div class="msg ${m.role === 'user' ? 'msg-user' : 'msg-bot'}">${m.text}</div>`
+          ).join('');
+        } else {
+          document.getElementById('modalTranscript').parentElement.style.display = 'none';
+        }
+
+        document.getElementById('modalPdfBtn').style.display = '';
         document.getElementById('historyModal').classList.add('open');
         return;
       }
@@ -8753,6 +9026,17 @@ ${pdfText}`;
       if (s.type === 'medical-test') {
         const date = new Date(s.date || s.createdAt).toLocaleString('ar-EG');
         text = `=== طبيبك — تقرير تحليل طبي ===\n\nنوع التحليل: ${s.badge || '—'}\nالحالة: ${s.status || '—'}\nالتاريخ: ${date}\n\nالتحليل:\n${s.analysis || ''}\n\nالتوصيات:\n${(s.advices || []).map((a, i) => `${i + 1}. ${a.title}${a.desc ? ': ' + a.desc : ''}`).join('\n')}\n\n⚠️ تم الإنشاء بواسطة الذكاء الاصطناعي — ليس تشخيصاً طبياً.`;
+      } else if (s.type === 'nutrition') {
+        const date = new Date(s.date || s.createdAt).toLocaleString('ar-EG');
+        const cardsText = (s.cards || []).map(card => {
+          const items = (card.items || []).map(item => {
+            const name = typeof item === 'object' ? item.name : item;
+            const reason = typeof item === 'object' ? item.reason : '';
+            return `  - ${name}${reason ? ': ' + reason : ''}`;
+          }).join('\n');
+          return `${card.title}:\n${items}`;
+        }).join('\n\n');
+        text = `=== طبيبك — تقرير التوجيه الغذائي ===\n\nالخطة: ${s.badge || '—'}\nالتاريخ: ${date}\n\nالتحليل السريري:\n${s.analysis || ''}\n\nالتوصيات الغذائية:\n${cardsText}\n\n⚠️ تم الإنشاء بواسطة الذكاء الاصطناعي — ليس تشخيصاً طبياً.`;
       } else {
         const level = s.level || 'green';
         text = `=== TABIBAK TRIAGE REPORT ===\n\nSymptom: ${s.symptom || ''}\nUrgency: ${level.toUpperCase()}\nCondition: ${s.condition || 'Assessment'}\n\nAssessment:\n${s.desc || ''}\n\nRecommendations:\n${(s.recs || []).map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\nGenerated: ${new Date(s.date || s.createdAt).toLocaleString()}\n\n⚠️ AI-generated — not a clinical diagnosis.`;
@@ -8760,6 +9044,59 @@ ${pdfText}`;
       navigator.clipboard.writeText(text).catch(() => { });
       document.getElementById('modalCopyBtn').textContent = '✓ تم النسخ!';
       setTimeout(() => document.getElementById('modalCopyBtn').textContent = 'نسخ التقرير', 2000);
+    });
+
+    document.getElementById('modalPdfBtn').addEventListener('click', () => {
+      const mySessions = STATE.sessions.map(parseSession);
+      const s = mySessions[STATE.modalSessionIndex];
+      if (!s || s.type !== 'nutrition') return;
+      const date = new Date(s.date || s.createdAt).toLocaleDateString('ar-EG', { day: '2-digit', month: 'long', year: 'numeric' });
+      const time = new Date(s.date || s.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+
+      const cardsHtml = (s.cards || []).map(card => {
+        const items = (card.items || []).map(item => {
+          const name = typeof item === 'object' ? item.name : item;
+          const reason = typeof item === 'object' ? item.reason : '';
+          return `<li><strong>${name}</strong>${reason ? `<br><small>${reason}</small>` : ''}</li>`;
+        }).join('');
+        return `<div style="margin-bottom:1.5rem;page-break-inside:avoid;">
+          <h3 style="color:#2b6cb0;margin-bottom:0.5rem;font-size:1.1rem;">${card.icon || ''} ${card.title}</h3>
+          <ul style="margin:0;padding-right:1.5rem;">${items}</ul>
+        </div>`;
+      }).join('');
+
+      const chatHtml = (s.foodChatLog || []).map(m =>
+        `<p style="margin:0.3rem 0;padding:0.3rem 0.6rem;background:${m.role === 'user' ? '#e8f0fe' : '#f5f5f5'};border-radius:6px;"><strong>${m.role === 'user' ? 'المستخدم' : 'المساعد'}:</strong> ${m.text}</p>`
+      ).join('');
+
+      const win = window.open('', '_blank');
+      win.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير التوجيه الغذائي</title>
+        <style>
+          @page { margin: 1.5cm; }
+          body { font-family: 'Cairo', Arial, sans-serif; color: #1a1a2e; line-height: 1.7; max-width: 700px; margin: auto; padding: 20px; }
+          h1 { color: #2b6cb0; border-bottom: 2px solid #2b6cb0; padding-bottom: 8px; font-size: 22px; }
+          h2 { color: #1e4e8c; font-size: 16px; margin-top: 1rem; }
+          .meta { color: #666; font-size: 13px; margin-bottom: 1.5rem; }
+          .analysis { background: #f0f7ff; padding: 12px; border-radius: 8px; margin-bottom: 1.5rem; }
+          .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-align: center; }
+          ul { margin: 0.3rem 0; padding-right: 1.5rem; }
+          li { margin-bottom: 0.4rem; }
+          small { color: #666; font-size: 12px; }
+        </style></head><body>
+        <h1>🍽️ تقرير التوجيه الغذائي</h1>
+        <div class="meta">
+          <p>التاريخ: ${date} ${time}</p>
+          ${s.username ? `<p>المريض: ${s.username}</p>` : ''}
+          ${s.badge ? `<p>الخطة: ${s.badge}</p>` : ''}
+        </div>
+        ${s.analysis ? `<div class="analysis"><strong>التحليل السريري:</strong><br>${s.analysis}</div>` : ''}
+        <h2>التوصيات الغذائية</h2>
+        ${cardsHtml}
+        ${chatHtml ? `<h2 style="margin-top:1.5rem;">💬 سجل التعديلات</h2>${chatHtml}` : ''}
+        <div class="footer">تم الإنشاء بواسطة طبيبك — الذكاء الاصطناعي المساعد للرعاية الصحية<br>هذا التقرير ليس تشخيصاً طبياً بديلاً عن استشارة الطبيب المختص.</div>
+        <script>window.print();window.close();<\/script>
+      </body></html>`);
+      win.document.close();
     });
 
     /* ================================================================
