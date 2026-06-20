@@ -7461,10 +7461,9 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
               'Authorization': `Bearer ${keyToUse}`,
             },
             body: JSON.stringify({
-              model: 'llama-3.3-70b-versatile',
+              model: 'qwen/qwen3-32b',
               temperature: 0.2,
               max_tokens: 2000,
-              response_format: { type: 'json_object' },
               messages: [
                 { role: 'system', content: 'أنت مستشار تغذية محايد. حلل البيانات المقدمة وأخرج JSON صالحاً فقط.' },
                 { role: 'user', content: promptText },
@@ -7705,10 +7704,9 @@ ${JSON.stringify(currentData, null, 2)}
                 'Authorization': `Bearer ${apiKey}`,
               },
               body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
+                model: 'qwen/qwen3-32b',
                 temperature: 0.2,
                 max_tokens: 3000,
-                response_format: { type: 'json_object' },
                 messages: [
                   { role: 'system', content: 'أنت مستشار تغذية محايد. أخرج JSON صالحاً فقط.' },
                   { role: 'user', content: promptText },
