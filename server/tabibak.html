@@ -7444,52 +7444,51 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
       // ── 3. Call Groq API — works directly from the browser ───
       //       No proxy needed. CORS is fully supported by Groq.
       const keyToUse = apiKey || GROQ_API_KEY;
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${keyToUse}`,
+        },
+        body: JSON.stringify({
+          model: 'qwen/qwen3-32b', // nutrition model — strong Arabic + large free quota
+          temperature: 0.4,
+          max_tokens: 1000,
+          response_format: { type: 'json_object' }, // forces valid JSON — no markdown wrapping
+          messages: [
+            {
+              role: 'system',
+              content: 'أنت أخصائي تغذية سريرية. أجب دائماً بـ JSON فقط بدون أي نص خارجه.',
+            },
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+        }),
+      });
 
-      async function attemptCall(promptText, systemMsg) {
-        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${keyToUse}`,
-          },
-          body: JSON.stringify({
-            model: 'qwen/qwen3-32b', // nutrition model — strong Arabic + large free quota
-            temperature: 0.4,
-            max_tokens: 1000,
-            messages: [
-              { role: 'system', content: systemMsg },
-              { role: 'user', content: promptText },
-            ],
-          }),
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          const msg = err.error?.message || 'فشل الاتصال';
-          if (res.status === 401) throw new Error('مفتاح Groq غير صحيح — تحقق من GROQ_API_KEY في الكود');
-          if (res.status === 429) throw new Error('تجاوزت الحد المسموح به — انتظر دقيقة وحاول مجدداً');
-          if (res.status === 503) throw new Error('خدمة Groq غير متاحة مؤقتاً — حاول بعد قليل');
-          throw new Error(`Groq ${res.status}: ${msg}`);
-        }
-        const data = await res.json();
-        const raw = data.choices?.[0]?.message?.content;
-        if (!raw) throw new Error('لم يرد Groq بأي محتوى');
-        const clean = raw.replace(/```json|```/g, '').trim();
-        return safeJsonParse(clean);
+      // ── 4. Handle errors clearly ──────────────────────────────
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        const msg = err.error?.message || 'فشل الاتصال';
+
+        // Friendly Arabic error messages for common cases
+        if (res.status === 401) throw new Error('مفتاح Groq غير صحيح — تحقق من GROQ_API_KEY في الكود');
+        if (res.status === 429) throw new Error('تجاوزت الحد المسموح به — انتظر دقيقة وحاول مجدداً');
+        if (res.status === 503) throw new Error('خدمة Groq غير متاحة مؤقتاً — حاول بعد قليل');
+        throw new Error(`Groq ${res.status}: ${msg}`);
       }
 
-      const systemMsg = 'أنت أخصائي تغذية سريرية. أجب دائماً بـ JSON فقط بدون أي نص خارجه.';
+      // ── 5. Parse the response ─────────────────────────────────
+      const data = await res.json();
+      const raw = data.choices?.[0]?.message?.content;
 
-      try {
-        return await attemptCall(prompt, systemMsg);
-      } catch (firstErr) {
-        // Retry once with stricter JSON instruction
-        try {
-          return await attemptCall(prompt + '\n\nتذكير صارم: أرجِع JSON صالحاً فقط. لا تكتب أي كلمة خارج الـ JSON.',
-            'أعد JSON فقط. لا تكتب غير JSON.');
-        } catch (secondErr) {
-          throw firstErr;
-        }
-      }
+      if (!raw) throw new Error('لم يرد Groq بأي محتوى');
+
+      // Strip any accidental markdown fences just in case
+      const clean = raw.replace(/```json|```/g, '').trim();
+      return safeJsonParse(clean);
     }
 
     function renderFoodCards(data, clearChat = true) {
@@ -7691,44 +7690,35 @@ ${JSON.stringify(currentData, null, 2)}
   "refusal": "شرح سبب الرفض (إذا رفضت الإضافة، وإلا فلا تضف هذا الحقل)"
 }`;
 
-        async function callFollowUp(promptText) {
-          const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-              model: 'qwen/qwen3-32b',
-              temperature: 0.4,
-              max_tokens: 1500,
-              messages: [
-                { role: 'system', content: 'أنت أخصائي تغذية سريرية. أجب دائماً بـ JSON فقط بدون أي نص خارجه.' },
-                { role: 'user', content: promptText },
-              ],
-            }),
-          });
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.error?.message || 'فشل الاتصال');
-          }
-          const data = await res.json();
-          const raw = data.choices?.[0]?.message?.content;
-          if (!raw) throw new Error('لم يرد Groq بأي محتوى');
-          const clean = raw.replace(/```json|```/g, '').trim();
-          return safeJsonParse(clean);
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: 'qwen/qwen3-32b',
+            temperature: 0.4,
+            max_tokens: 1500,
+            response_format: { type: 'json_object' },
+            messages: [
+              { role: 'system', content: 'أنت أخصائي تغذية سريرية. أجب دائماً بـ JSON فقط بدون أي نص خارجه.' },
+              { role: 'user', content: followUpPrompt },
+            ],
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error?.message || 'فشل الاتصال');
         }
 
-        let updatedData;
-        try {
-          updatedData = await callFollowUp(followUpPrompt);
-        } catch (firstErr) {
-          try {
-            updatedData = await callFollowUp(followUpPrompt + '\n\nتذكير صارم: أرجِع JSON صالحاً فقط. لا تكتب أي كلمة خارج الـ JSON.');
-          } catch (secondErr) {
-            throw firstErr;
-          }
-        }
+        const data = await res.json();
+        const raw = data.choices?.[0]?.message?.content;
+        if (!raw) throw new Error('لم يرد Groq بأي محتوى');
+
+        const clean = raw.replace(/```json|```/g, '').trim();
+        const updatedData = safeJsonParse(clean);
 
         // Validate it has the expected structure
         if (!updatedData.cards || !Array.isArray(updatedData.cards)) {
