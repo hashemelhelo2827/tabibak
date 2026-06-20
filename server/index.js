@@ -28,6 +28,9 @@ app.use(cors({
 
 app.use(express.json());
 
+// Serialize BigInt from libSQL/SQLite across all routes
+BigInt.prototype.toJSON = function() { return Number(this); };
+
 // Socket.io — real-time sync
 const io = new Server(server, {
   cors: {
