@@ -7460,9 +7460,7 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
       const keyToUse = apiKey || GROQ_API_KEY;
 
       async function callGroq(promptText) {
-        const models = ['qwen/qwen3-32b', 'llama-3.3-70b-versatile'];
-        let lastErr;
-        for (const model of models) {
+        for (let attempt = 0; attempt < 2; attempt++) {
           const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -7470,7 +7468,7 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
               'Authorization': `Bearer ${keyToUse}`,
             },
             body: JSON.stringify({
-              model,
+              model: 'qwen/qwen3-32b',
               temperature: 0.4,
               max_tokens: 2000,
               messages: [
@@ -7482,7 +7480,7 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
           if (res.ok) {
             const data = await res.json();
             const raw = data.choices?.[0]?.message?.content;
-            if (!raw) { lastErr = new Error('لم يرد Groq بأي محتوى'); continue; }
+            if (!raw) throw new Error('لم يرد Groq بأي محتوى');
             let clean = raw.replace(/```json|```/g, '').trim();
             clean = clean.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
             clean = clean.replace(/<think>/gi, '').trim();
@@ -7491,7 +7489,7 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
             if (jsonStart !== -1 && jsonEnd !== -1) {
               clean = clean.substring(jsonStart, jsonEnd + 1);
             } else {
-              lastErr = new Error('الرد لا يحتوي على JSON صالح'); continue;
+              throw new Error('الرد لا يحتوي على JSON صالح');
             }
             return safeJsonParse(repairJSON(clean));
           }
@@ -7499,9 +7497,14 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
           const msg = err.error?.message || 'فشل الاتصال';
           if (res.status === 401) throw new Error('مفتاح Groq غير صحيح');
           if (res.status === 503) throw new Error('خدمة Groq غير متاحة مؤقتاً — حاول بعد قليل');
-          lastErr = new Error(`Groq ${res.status}: ${msg}`);
+          if (res.status === 429 && attempt === 0) {
+            const waitMatch = msg.match(/in\s+([\d.]+)s/);
+            const waitMs = waitMatch ? (parseFloat(waitMatch[1]) + 1) * 1000 : 15000;
+            await new Promise(r => setTimeout(r, waitMs));
+            continue;
+          }
+          throw new Error(msg);
         }
-        throw lastErr;
       }
 
       return await callGroq(prompt);
@@ -7707,9 +7710,7 @@ ${JSON.stringify(currentData, null, 2)}
 }`;
 
         async function callFollowUp(promptText) {
-          const models = ['qwen/qwen3-32b', 'llama-3.3-70b-versatile'];
-          let lastErr;
-          for (const model of models) {
+          for (let attempt = 0; attempt < 2; attempt++) {
             const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
               method: 'POST',
               headers: {
@@ -7717,7 +7718,7 @@ ${JSON.stringify(currentData, null, 2)}
                 'Authorization': `Bearer ${apiKey}`,
               },
               body: JSON.stringify({
-                model,
+                model: 'qwen/qwen3-32b',
                 temperature: 0.4,
                 max_tokens: 3000,
                 messages: [
@@ -7729,7 +7730,7 @@ ${JSON.stringify(currentData, null, 2)}
             if (res.ok) {
               const data = await res.json();
               const raw = data.choices?.[0]?.message?.content;
-              if (!raw) { lastErr = new Error('لم يرد Groq بأي محتوى'); continue; }
+              if (!raw) throw new Error('لم يرد Groq بأي محتوى');
               let clean = raw.replace(/```json|```/g, '').trim();
               clean = clean.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
               clean = clean.replace(/<think>/gi, '').trim();
@@ -7738,11 +7739,11 @@ ${JSON.stringify(currentData, null, 2)}
               if (jsonStart !== -1 && jsonEnd !== -1) {
                 clean = clean.substring(jsonStart, jsonEnd + 1);
               } else {
-                lastErr = new Error('الرد لا يحتوي على JSON صالح'); continue;
+                throw new Error('الرد لا يحتوي على JSON صالح');
               }
               const parsed = safeJsonParse(repairJSON(clean));
               if (!parsed.cards || !Array.isArray(parsed.cards)) {
-                lastErr = new Error('الاستجابة لا تحتوي على هيكل بطاقات صالح'); continue;
+                throw new Error('الاستجابة لا تحتوي على هيكل بطاقات صالح');
               }
               return parsed;
             }
@@ -7750,9 +7751,14 @@ ${JSON.stringify(currentData, null, 2)}
             const msg = err.error?.message || 'فشل الاتصال';
             if (res.status === 401) throw new Error('مفتاح Groq غير صحيح');
             if (res.status === 503) throw new Error('خدمة Groq غير متاحة مؤقتاً — حاول بعد قليل');
-            lastErr = new Error(msg);
+            if (res.status === 429 && attempt === 0) {
+              const waitMatch = msg.match(/in\s+([\d.]+)s/);
+              const waitMs = waitMatch ? (parseFloat(waitMatch[1]) + 1) * 1000 : 15000;
+              await new Promise(r => setTimeout(r, waitMs));
+              continue;
+            }
+            throw new Error(msg);
           }
-          throw lastErr;
         }
 
         const updatedData = await callFollowUp(basePrompt);
