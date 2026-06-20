@@ -62,7 +62,7 @@ app.use('/api/notif-debug', authenticateToken, notifDebugRoutes);
 app.get('/api/config/groq-key', (req, res) => {
   res.json({
     keys: [process.env.GROQ_API_KEY, process.env.GROQ_API_KEY_FALLBACK, process.env.GROQ_API_KEY_THIRD, process.env.GROQ_API_KEY_FOURTH].filter(Boolean),
-    medicalKeys: [process.env.GROQ_API_KEY_MEDICAL, process.env.GROQ_API_KEY_MEDICAL_FALLBACK, process.env.GROQ_API_KEY_FOURTH].filter(Boolean)
+    medicalKeys: [process.env.GROQ_API_KEY_MEDICAL, process.env.GROQ_API_KEY_MEDICAL_FALLBACK, process.env.GROQ_API_KEY_THIRD, process.env.GROQ_API_KEY_FOURTH].filter(Boolean)
   });
 });
 
