@@ -5700,6 +5700,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
         STATE.currentUser = await api('GET', '/api/auth/profile');
         STATE.sessions = await api('GET', '/api/sessions');
         try { STATE.meds.list = await api('GET', '/api/medications'); } catch (e) { STATE.meds.list = []; }
+        try { await loadMentorData(); } catch (e) {}
       } catch (e) {
         clearToken();
         STATE.currentUser = null;
@@ -6133,8 +6134,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
       if (log) log.forEach(l => { takenMap[`${l.medicationId}_${l.doseIdx}`] = true; });
 
       if (!meds || meds.length === 0) {
-        container.innerHTML = '<p style="color:var(--text-2);font-size:0.85rem;">لا توجد أدوية مسجلة.</p>
-          <button class="btn btn-primary" id="mentorAddMedBtn" style="font-size:0.8rem;margin-top:0.5rem;">+ إضافة دواء</button>';
+        container.innerHTML = '<p style="color:var(--text-2);font-size:0.85rem;">لا توجد أدوية مسجلة.</p><button class="btn btn-primary" id="mentorAddMedBtn" style="font-size:0.8rem;margin-top:0.5rem;">+ إضافة دواء</button>';
         container.querySelector('#mentorAddMedBtn')?.addEventListener('click', () => showMentorAddMedForm(username, container));
         return;
       }
