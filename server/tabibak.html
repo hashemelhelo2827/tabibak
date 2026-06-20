@@ -7468,7 +7468,7 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
           body: JSON.stringify({
             model: 'qwen/qwen3-32b',
             temperature: 0.4,
-            max_tokens: 1000,
+            max_tokens: 2000,
             messages: [
               { role: 'system', content: 'أنت أخصائي تغذية سريرية. أجب دائماً بـ JSON فقط بدون أي نص خارجه.' },
               { role: 'user', content: promptText },
@@ -7488,7 +7488,7 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
         if (!raw) throw new Error('لم يرد Groq بأي محتوى');
         let clean = raw.replace(/```json|```/g, '').trim();
         clean = clean.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-        clean = clean.replace(/<think>[\s\S]*/gi, '').trim();
+        clean = clean.replace(/<think>/gi, '').trim();
         const jsonStart = clean.indexOf('{');
         const jsonEnd = clean.lastIndexOf('}');
         if (jsonStart !== -1 && jsonEnd !== -1) {
@@ -7721,7 +7721,7 @@ ${JSON.stringify(currentData, null, 2)}
             body: JSON.stringify({
               model: 'qwen/qwen3-32b',
               temperature: 0.4,
-              max_tokens: 1500,
+              max_tokens: 3000,
               messages: [
                 { role: 'system', content: 'أنت أخصائي تغذية سريرية. أجب دائماً بـ JSON فقط بدون أي نص خارجه.' },
                 { role: 'user', content: promptText },
@@ -7740,7 +7740,7 @@ ${JSON.stringify(currentData, null, 2)}
 
           let clean = raw.replace(/```json|```/g, '').trim();
           clean = clean.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-          clean = clean.replace(/<think>[\s\S]*/gi, '').trim();
+          clean = clean.replace(/<think>/gi, '').trim();
           const jsonStart = clean.indexOf('{');
           const jsonEnd = clean.lastIndexOf('}');
           if (jsonStart !== -1 && jsonEnd !== -1) {
