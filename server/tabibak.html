@@ -7441,7 +7441,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
     /* ------ Arrow key navigation between tabs (RTL-aware) ------ */
     document.addEventListener('keydown', e => {
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-        const navOrder = ['landing', 'meds', 'history', 'food', 'medical-test', 'bmi', 'pharmacist'];
+        const navOrder = ['landing', 'meds', 'history', 'food', 'medical-test', 'bmi', 'pharmacist', 'mentor'];
         const current = STATE.currentTab;
         let idx = navOrder.indexOf(current);
         if (idx === -1) idx = 0;
@@ -7465,7 +7465,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
     document.addEventListener('touchend', e => {
       const diff = touchStartX - e.changedTouches[0].screenX;
       if (Math.abs(diff) < 50) return;
-      const navOrder = ['landing', 'meds', 'history', 'food', 'medical-test', 'bmi', 'pharmacist'];
+      const navOrder = ['landing', 'meds', 'history', 'food', 'medical-test', 'bmi', 'pharmacist', 'mentor'];
       const current = STATE.currentTab;
       let idx = navOrder.indexOf(current);
       if (idx === -1) idx = 0;
