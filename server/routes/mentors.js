@@ -1,6 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const { getDb } = require('../db');
+const { getMessaging } = require('firebase-admin/messaging');
+
+async function sendFcmPush(app, token, title, body, data) {
+  if (!app || !token) return;
+  try {
+    await getMessaging(app).send({ token, data: { title, body, type: 'mentor_message', ...data } });
+  } catch (err) {
+    if (err.code === 'messaging/invalid-registration-token' || err.code === 'messaging/registration-token-not-registered') {
+      const db = await getDb();
+      await db.execute({ sql: "UPDATE users SET fcmToken = '' WHERE fcmToken = ?", args: [token] });
+    }
+    console.error('[mentors] FCM send failed:', err.message);
+  }
+}
 
 async function checkMentorAuth(username, mentorUsername) {
   const db = await getDb();
@@ -101,10 +115,9 @@ router.get('/mentee/:user/sessions', async (req, res) => {
         sessionMap.set(row.id, { ...row, notes: [] });
       }
       if (row.noteId) {
-        sessionMap.get(row.id).notes.push({ id: row.noteId, note: row.note, createdAt: row.noteDate });
+        sessionMap.get(row.id).notes.push({ id: row.noteId, note: row.mentorNote, createdAt: row.noteDate });
       }
     }
-    delete row.noteId; delete row.note; delete row.noteDate; // cleanup template var
 
     res.json([...sessionMap.values()]);
   } catch (e) {
@@ -275,6 +288,23 @@ router.post('/mentee/:user/chat', async (req, res) => {
       sql: 'INSERT INTO mentor_messages (username, mentorUsername, message, role) VALUES (?, ?, ?, ?)',
       args: [req.params.user, req.user.username, message, 'mentor'],
     });
+
+    // Send FCM notification to mentee
+    const mentee = await db.execute({
+      sql: 'SELECT fcmToken, name FROM users WHERE username = ?',
+      args: [req.params.user],
+    });
+    if (mentee.rows.length > 0) {
+      const menteeName = req.user.name || req.user.username;
+      await sendFcmPush(
+        req.app.get('fcmApp'),
+        mentee.rows[0].fcmToken,
+        `📩 رسالة من المشرف ${menteeName}`,
+        message.length > 100 ? message.slice(0, 100) + '…' : message,
+        { mentorUsername: req.user.username, username: req.params.user }
+      );
+    }
+
     res.json({ id: r.lastInsertRowid, success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -293,6 +323,47 @@ router.get('/mentee/:user/chat', async (req, res) => {
       args: [req.params.user, req.user.username],
     });
     res.json(rows.rows);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Mentee replies to a mentor
+router.post('/reply', async (req, res) => {
+  try {
+    const { mentorUsername, message } = req.body;
+    if (!mentorUsername || !message) return res.status(400).json({ error: 'mentorUsername و message مطلوبان' });
+
+    // Verify this user is actually a mentee of this mentor
+    const db = await getDb();
+    const rel = await db.execute({
+      sql: 'SELECT 1 FROM mentors WHERE username = ? AND mentorUsername = ?',
+      args: [req.user.username, mentorUsername],
+    });
+    if (rel.rows.length === 0) return res.status(403).json({ error: 'هذا المستخدم ليس مرشدًا لك' });
+
+    const r = await db.execute({
+      sql: 'INSERT INTO mentor_messages (username, mentorUsername, message, role) VALUES (?, ?, ?, ?)',
+      args: [req.user.username, mentorUsername, message, 'mentee'],
+    });
+
+    // Send FCM notification to mentor
+    const mentor = await db.execute({
+      sql: 'SELECT fcmToken FROM users WHERE username = ?',
+      args: [mentorUsername],
+    });
+    const menteeName = req.user.name || req.user.username;
+    if (mentor.rows.length > 0) {
+      await sendFcmPush(
+        req.app.get('fcmApp'),
+        mentor.rows[0].fcmToken,
+        `📩 رد من ${menteeName}`,
+        message.length > 100 ? message.slice(0, 100) + '…' : message,
+        { menteeUsername: req.user.username, mentorUsername }
+      );
+    }
+
+    res.json({ id: r.lastInsertRowid, success: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

@@ -4956,6 +4956,14 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
           <div id="profileMentorMessagesWrap" style="margin-top:0.75rem;display:none;">
             <h4 style="font-size:0.85rem;color:var(--text-2);margin-bottom:0.4rem;">📩 رسائل المشرفين</h4>
             <div id="profileMentorMessages" style="display:flex;flex-direction:column;gap:0.3rem;max-height:200px;overflow-y:auto;"></div>
+            <div id="profileMentorReplyWrap" style="margin-top:0.5rem;display:none;">
+              <select id="profileMentorReplySelect" style="width:100%;padding:0.4rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-surface);color:inherit;font-size:0.8rem;margin-bottom:0.3rem;"></select>
+              <div style="display:flex;gap:0.5rem;">
+                <input type="text" id="profileMentorReplyInput" placeholder="اكتب ردك..."
+                  style="flex:1;padding:0.4rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-surface);color:inherit;font-size:0.85rem;" />
+                <button class="btn btn-primary" id="profileMentorReplySend" style="font-size:0.8rem;padding:0.3rem 1rem;">إرسال</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -9362,9 +9370,11 @@ ${pdfText}`;
         // Load mentor messages
         const msgWrap = document.getElementById('profileMentorMessagesWrap');
         const msgDiv = document.getElementById('profileMentorMessages');
+        const replyWrap = document.getElementById('profileMentorReplyWrap');
         if (STATE.mentors.length > 0) {
+          let msgs = [];
           try {
-            const msgs = await api('GET', '/api/mentors/messages');
+            msgs = await api('GET', '/api/mentors/messages');
             if (msgs && msgs.length > 0) {
               msgWrap.style.display = '';
               msgDiv.innerHTML = msgs.slice(0, 10).map(m => `
@@ -9375,11 +9385,40 @@ ${pdfText}`;
                 </div>
               `).join('');
             } else {
-              msgWrap.style.display = 'none';
+              msgDiv.innerHTML = '<p style="color:var(--text-2);font-size:0.8rem;">لا توجد رسائل بعد.</p>';
             }
-          } catch (e) { msgWrap.style.display = 'none'; }
+            replyWrap.style.display = '';
+          } catch (e) { msgWrap.style.display = 'none'; replyWrap.style.display = 'none'; }
+
+          // Populate mentor reply dropdown
+          const sel = document.getElementById('profileMentorReplySelect');
+          sel.innerHTML = STATE.mentors.map(m =>
+            `<option value="${m.mentorUsername}">${m.name} (@${m.mentorUsername})</option>`
+          ).join('');
+
+          // Pre-select the most recent sender
+          if (msgs && msgs.length > 0) {
+            sel.value = msgs[0].mentorUsername;
+          }
+
+          // Wire up send
+          document.getElementById('profileMentorReplySend').onclick = async () => {
+            const input = document.getElementById('profileMentorReplyInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            const mentorUser = document.getElementById('profileMentorReplySelect').value;
+            input.value = '';
+            try {
+              await api('POST', '/api/mentors/reply', { mentorUsername: mentorUser, message: msg });
+              refreshProfileScreen();
+            } catch (e) { alert(e.message); }
+          };
+          document.getElementById('profileMentorReplyInput').onkeydown = (e) => {
+            if (e.key === 'Enter') document.getElementById('profileMentorReplySend').click();
+          };
         } else {
           msgWrap.style.display = 'none';
+          replyWrap.style.display = 'none';
         }
       }
     }
