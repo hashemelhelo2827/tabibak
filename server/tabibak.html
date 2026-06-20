@@ -7454,7 +7454,6 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
           model: 'qwen/qwen3-32b', // nutrition model — strong Arabic + large free quota
           temperature: 0.4,
           max_tokens: 1000,
-          response_format: { type: 'json_object' }, // forces valid JSON — no markdown wrapping
           messages: [
             {
               role: 'system',
@@ -7700,7 +7699,6 @@ ${JSON.stringify(currentData, null, 2)}
             model: 'qwen/qwen3-32b',
             temperature: 0.4,
             max_tokens: 1500,
-            response_format: { type: 'json_object' },
             messages: [
               { role: 'system', content: 'أنت أخصائي تغذية سريرية. أجب دائماً بـ JSON فقط بدون أي نص خارجه.' },
               { role: 'user', content: followUpPrompt },
