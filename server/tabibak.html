@@ -7460,39 +7460,31 @@ ${hasContext ? userContext : 'لا تتوفر معلومات صحية سابقة
       const keyToUse = apiKey || GROQ_API_KEY;
 
       async function callGroq(promptText) {
-        let lastRes;
-        for (let attempt = 0; attempt < 2; attempt++) {
-          lastRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${keyToUse}`,
-            },
-            body: JSON.stringify({
-              model: 'qwen/qwen3-32b',
-              temperature: 0.4,
-              max_tokens: 2000,
-              messages: [
-                { role: 'system', content: 'أنت أخصائي تغذية سريرية. أجب دائماً بـ JSON فقط بدون أي نص خارجه.' },
-                { role: 'user', content: promptText },
-              ],
-            }),
-          });
-          if (lastRes.ok) break;
-          const err = await lastRes.json().catch(() => ({}));
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${keyToUse}`,
+          },
+          body: JSON.stringify({
+            model: 'qwen/qwen3-32b',
+            temperature: 0.4,
+            max_tokens: 2000,
+            messages: [
+              { role: 'system', content: 'أنت أخصائي تغذية سريرية. أجب دائماً بـ JSON فقط بدون أي نص خارجه.' },
+              { role: 'user', content: promptText },
+            ],
+          }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
           const msg = err.error?.message || 'فشل الاتصال';
-          if (lastRes.status === 401) throw new Error('مفتاح Groq غير صحيح');
-          if (lastRes.status === 503) throw new Error('خدمة Groq غير متاحة مؤقتاً — حاول بعد قليل');
-          if (lastRes.status === 429 && attempt === 0) {
-            const waitMatch = msg.match(/in\s+([\d.]+)s/);
-            const waitMs = waitMatch ? (parseFloat(waitMatch[1]) + 1) * 1000 : 15000;
-            await new Promise(r => setTimeout(r, waitMs));
-            continue;
-          }
-          throw new Error(`Groq ${lastRes.status}: ${msg}`);
+          if (res.status === 401) throw new Error('مفتاح Groq غير صحيح');
+          if (res.status === 429) throw new Error(msg);
+          if (res.status === 503) throw new Error('خدمة Groq غير متاحة مؤقتاً — حاول بعد قليل');
+          throw new Error(`Groq ${res.status}: ${msg}`);
         }
-        if (!lastRes.ok) throw new Error('فشل الاتصال');
-        const data = await lastRes.json();
+        const data = await res.json();
         const raw = data.choices?.[0]?.message?.content;
         if (!raw) throw new Error('لم يرد Groq بأي محتوى');
         let clean = raw.replace(/```json|```/g, '').trim();
@@ -7711,41 +7703,36 @@ ${JSON.stringify(currentData, null, 2)}
 }`;
 
         async function callFollowUp(promptText) {
-          let lastRes;
-          for (let attempt = 0; attempt < 2; attempt++) {
-            lastRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-              },
-              body: JSON.stringify({
-                model: 'qwen/qwen3-32b',
-                temperature: 0.4,
-                max_tokens: 3000,
-                messages: [
-                  { role: 'system', content: 'أنت أخصائي تغذية سريرية. أجب دائماً بـ JSON فقط بدون أي نص خارجه.' },
-                  { role: 'user', content: promptText },
-                ],
-              }),
-            });
-            if (lastRes.ok) break;
-            const err = await lastRes.json().catch(() => ({}));
+          const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+              model: 'qwen/qwen3-32b',
+              temperature: 0.4,
+              max_tokens: 3000,
+              messages: [
+                { role: 'system', content: 'أنت أخصائي تغذية سريرية. أجب دائماً بـ JSON فقط بدون أي نص خارجه.' },
+                { role: 'user', content: promptText },
+              ],
+            }),
+          });
+
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
             const msg = err.error?.message || 'فشل الاتصال';
-            if (lastRes.status === 401) throw new Error('مفتاح Groq غير صحيح');
-            if (lastRes.status === 503) throw new Error('خدمة Groq غير متاحة مؤقتاً — حاول بعد قليل');
-            if (lastRes.status === 429 && attempt === 0) {
-              const waitMatch = msg.match(/in\s+([\d.]+)s/);
-              const waitMs = waitMatch ? (parseFloat(waitMatch[1]) + 1) * 1000 : 15000;
-              await new Promise(r => setTimeout(r, waitMs));
-              continue;
-            }
+            if (res.status === 401) throw new Error('مفتاح Groq غير صحيح');
+            if (res.status === 429) throw new Error(msg);
+            if (res.status === 503) throw new Error('خدمة Groq غير متاحة مؤقتاً — حاول بعد قليل');
             throw new Error(msg);
           }
-          if (!lastRes.ok) throw new Error('فشل الاتصال');
-          const data = await lastRes.json();
+
+          const data = await res.json();
           const raw = data.choices?.[0]?.message?.content;
           if (!raw) throw new Error('لم يرد Groq بأي محتوى');
+
           let clean = raw.replace(/```json|```/g, '').trim();
           clean = clean.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
           clean = clean.replace(/<think>/gi, '').trim();
