@@ -4537,6 +4537,9 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
           <p style="margin-bottom:0.5rem;font-weight:600;color:var(--text-1);">💬 تريد إضافة أو إزالة طعام؟</p>
           <div id="foodChatLog" class="chat-log" style="min-height:0;max-height:200px;overflow-y:auto;margin-bottom:0.5rem;display:flex;flex-direction:column;gap:0.5rem;"></div>
           <div class="food-chat-input-row" style="display:flex;gap:0.5rem;">
+            <button class="model-toggle-btn" id="foodChatModelToggle" title="تغيير النموذج" style="padding:0.25rem 0.5rem;font-size:0.75rem;">
+              <span id="foodChatModelLabel">🧠 Qwen</span>
+            </button>
             <input type="text" id="foodChatInput" placeholder="مثال: أضف سمك السلمون أو أزل الموز..."
               autocomplete="off" style="flex:1;padding:0.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-surface);color:inherit;font-size:0.9rem;" />
             <button class="btn btn-primary" id="foodChatSendBtn" style="white-space:nowrap;">إرسال</button>
@@ -8142,6 +8145,7 @@ ${dislikedList.length > 0 ? `\n⚠️ الأطعمة التي يكرهها أو 
         document.getElementById('foodChatInput').value = '';
       }
       document.getElementById('foodChatArea').style.display = '';
+      document.getElementById('foodChatModelLabel').textContent = STATE.food.preferredModel === 'llama' ? '🦙 Llama' : '🧠 Qwen';
       document.getElementById('foodActions').style.display = 'flex';
     }
 
@@ -8198,6 +8202,17 @@ ${dislikedList.length > 0 ? `\n⚠️ الأطعمة التي يكرهها أو 
         STATE.food.preferredModel = 'llama';
         document.getElementById('foodModelIndicator').textContent = '🦙';
         document.getElementById('foodModelLabel').textContent = 'Llama 3.3 70B';
+      }
+    });
+
+    document.getElementById('foodChatModelToggle').addEventListener('click', () => {
+      const isLlama = STATE.food.preferredModel === 'llama';
+      if (isLlama) {
+        STATE.food.preferredModel = '';
+        document.getElementById('foodChatModelLabel').textContent = '🧠 Qwen';
+      } else {
+        STATE.food.preferredModel = 'llama';
+        document.getElementById('foodChatModelLabel').textContent = '🦙 Llama';
       }
     });
 
