@@ -268,6 +268,9 @@ router.delete('/mentee/:user/meds/:medId', async (req, res) => {
     if (!isAuth) return res.status(403).json({ error: 'غير مصرح لك بالوصول' });
 
     const db = await getDb();
+    await db.execute({ sql: 'DELETE FROM notification_log WHERE medicationId = ? AND username = ?', args: [req.params.medId, req.params.user] });
+    await db.execute({ sql: 'DELETE FROM medication_log WHERE medicationId = ? AND username = ?', args: [req.params.medId, req.params.user] });
+    await db.execute({ sql: 'DELETE FROM medication_doses WHERE medicationId = ?', args: [req.params.medId] });
     await db.execute({ sql: 'DELETE FROM medications WHERE id = ? AND username = ?', args: [req.params.medId, req.params.user] });
     res.json({ success: true });
   } catch (e) {

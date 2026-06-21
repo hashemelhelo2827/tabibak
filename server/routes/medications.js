@@ -72,7 +72,10 @@ router.delete('/:id', async (req, res) => {
     if (!med.rows[0]) {
       return res.status(404).json({ error: 'Medication not found' });
     }
-    await db.execute({ sql: 'DELETE FROM medications WHERE id = ?', args: [req.params.id] });
+    await db.execute({ sql: 'DELETE FROM notification_log WHERE medicationId = ? AND username = ?', args: [req.params.id, req.user.username] });
+    await db.execute({ sql: 'DELETE FROM medication_log WHERE medicationId = ? AND username = ?', args: [req.params.id, req.user.username] });
+    await db.execute({ sql: 'DELETE FROM medication_doses WHERE medicationId = ?', args: [req.params.id] });
+    await db.execute({ sql: 'DELETE FROM medications WHERE id = ? AND username = ?', args: [req.params.id, req.user.username] });
     const io = req.app.get('io');
     io.to(`user:${req.user.username}`).emit('medications:updated', { action: 'deleted', id: req.params.id });
     res.json({ message: 'Medication deleted' });

@@ -6556,7 +6556,7 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
           const id = btn.dataset.id;
           if (confirm('Remove this medication from your list?')) {
             if (STATE.currentUser) {
-              try { await api('DELETE', '/api/medications/' + id); } catch (e) { }
+              try { await api('DELETE', '/api/medications/' + id); } catch (e) { alert('فشل حذف الدواء. يرجى المحاولة مرة أخرى.'); return; }
             } else {
               STATE.meds.defaultsDismissed = true;
             }

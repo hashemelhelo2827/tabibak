@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>Tabibak — Features Explained Simply</title>
+<style>
+  @page { margin: 1.8cm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; line-height: 1.7; max-width: 900px; margin: auto; padding: 24px; font-size: 11.5pt; }
+  h1 { color: #0d9488; border-bottom: 3px solid #0d9488; padding-bottom: 10px; font-size: 26px; margin-top: 0; }
+  h2 { color: #0d9488; margin-top: 36px; border-left: 5px solid #0d9488; padding-left: 14px; font-size: 19px; page-break-before: always; }
+  h2:first-of-type { page-break-before: avoid; }
+  h3 { color: #1a1a3a; margin: 20px 0 6px 0; font-size: 14.5px; }
+  .badge { display: inline-block; background: #0d9488; color: white; padding: 2px 10px; border-radius: 10px; font-size: 9.5px; margin-right: 4px; font-weight: 600; }
+  .badge-blue { background: #3b82f6; }
+  .badge-red { background: #ef4444; }
+  .badge-orange { background: #f59e0b; }
+  .badge-purple { background: #8b5cf6; }
+  .box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .box-green { background: #f0fdf4; border-color: #86efac; }
+  .box-yellow { background: #fefce8; border-color: #facc15; }
+  .box-blue { background: #eff6ff; border-color: #93c5fd; }
+  .box-icon { font-size: 24px; display: inline-block; margin-right: 8px; vertical-align: middle; }
+  .em { color: #0d9488; font-weight: 600; }
+  .strong { color: #1e293b; font-weight: 700; }
+  .section { page-break-inside: avoid; }
+  .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #d1d5db; font-size: 10px; color: #64748b; text-align: center; }
+  .toc-item { padding: 4px 0; }
+  .toc-item a { color: #0d9488; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<h1>Tabibak &mdash; Features Explained Simply</h1>
+<p style="font-size:16px;color:#64748b;margin-top:-6px;">Every feature in plain language &mdash; how it works, why we built it this way, and what makes it reliable.</p>
+
+<!-- ============================================================ -->
+<h2 style="page-break-before:avoid;">What's Inside</h2>
+<div style="columns:2;column-gap:30px;">
+  <div class="toc-item"><strong>1.</strong> Sign Up &amp; Login</div>
+  <div class="toc-item"><strong>2.</strong> AI Medical Triage</div>
+  <div class="toc-item"><strong>3.</strong> Breathing Test</div>
+  <div class="toc-item"><strong>4.</strong> Medication Reminders</div>
+  <div class="toc-item"><strong>5.</strong> AI Nutrition Advisor</div>
+  <div class="toc-item"><strong>6.</strong> Medical Test Analyzer</div>
+  <div class="toc-item"><strong>7.</strong> BMI Calculator</div>
+  <div class="toc-item"><strong>8.</strong> History Log</div>
+  <div class="toc-item"><strong>9.</strong> Pharmacist WhatsApp</div>
+  <div class="toc-item"><strong>10.</strong> Mentor/Mentee System</div>
+  <div class="toc-item"><strong>11.</strong> Push Notifications</div>
+  <div class="toc-item"><strong>12.</strong> UI &amp; Theme</div>
+  <div class="toc-item"><strong>A.</strong> Behind the Scenes: Database</div>
+  <div class="toc-item"><strong>B.</strong> Behind the Scenes: Project Layout</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 1 -->
+<!-- ============================================================ -->
+<h2>1. Sign Up &amp; Login</h2>
+<div class="section">
+
+<h3>How it works</h3>
+<p>You pick a username and a password. When you hit "Register," the password is scrambled into a secret code before it gets saved — so even we can't read it. The next time you log in, we scramble what you type and compare it to the saved code. If they match, you're in. You also see a "Sign in with Google" button. Tap it, pick your Google account, and we trust Google's verification instead of asking for a password.</p>
+
+<h3>Why this way</h3>
+<p>Most apps save passwords as plain text or use weak scrambling that's easy to crack. We use a method called <span class="em">bcrypt</span> — it's slow on purpose, making it impractical for attackers to guess your password even if they steal the database. Google sign-in means you don't have to remember yet another password, and Google handles all the security. Once logged in, you get a digital ticket (a JWT) that acts like a stamped pass — you show it once when logging in, then flash it at every screen. This is faster and safer than sending your password with every request.</p>
+
+<h3>Behind the scenes</h3>
+<p>When you tap "Register," your browser sends your username and scrambled password to the server. The server saves it in a database table called <span class="em">users</span>. When you log in later, the server fetches your saved data, compares the scrambled passwords, and if it matches, creates a JWT ticket that expires after 7 days. That ticket is stored in your browser's localStorage and automatically attached to every request. For Google sign-in, your browser sends Google's verification token to the server, which checks with Google that it's valid, then creates the same JWT ticket.</p>
+<p><span class="strong">What makes it solid:</span> Passwords must be 8+ characters with at least one uppercase letter, one lowercase letter, one number, and one special character — this stops weak passwords that are easy to guess. bcrypt with 10 rounds means even a powerful computer would take years to crack a single password. The JWT expires after 7 days, so if someone steals your ticket, they can only use it for a week. The entire auth system is handled by a short middleware that runs on every protected page — consistent and hard to bypass.</p>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- 2 -->
+<!-- ============================================================ -->
+<h2>2. AI Medical Triage (Symptom Checker)</h2>
+<div class="section">
+
+<h3>How it works</h3>
+<p>You type what's bothering you into a text box — something like "I've had a headache for three days." The app starts a conversation with you, asking 5 follow-up questions one at a time (like "Where exactly does it hurt?" and "How bad is the pain on a scale of 1-10?"). After you answer all 5, the AI analyzes everything and gives you a result with a colored badge — green means mild, orange means moderate, red means urgent. You get a condition name, a plain-language explanation, and steps you should take. If you mention an emergency symptom like "chest pain" or "can't breathe," a big red warning banner pops up instantly telling you to call 123.</p>
+
+<h3>Why this way</h3>
+<p>Most symptom checkers make you pick from menus or lists — they miss details because they only give you pre-written options. Using AI means you can describe your symptoms naturally, in your own words. The 5-question structure is important: instead of the AI asking random things, it follows a logical medical interview pattern, making sure nothing important is missed. The red-flag detection runs on your phone, not the server, so emergency warnings appear immediately — no waiting for the internet.</p>
+
+<h3>Behind the scenes</h3>
+<p>When you tap "Start," your browser remembers your answers as the conversation goes on. After all 5 questions, it sends the full chat to Groq's AI (a service hosted online). The AI reads everything and sends back a structured result: condition name, severity, explanation, and recommendations. Your browser then displays it with the right color badge. The whole session — both your answers and the AI's response — gets saved to the server's database so you can look it up later under History.</p>
+<p><span class="strong">What makes it solid:</span> The app actually has <span class="em">two</span> AI models — Qwen 3 32B (the main one, great with Arabic) and Llama 3.3 70B (a backup with deeper reasoning). If the first model is busy or slow, the app automatically switches to the second without you noticing. Even better, there are <span class="em">4 API keys</span> stored across 3 different accounts — if one gets rate-limited (too many requests), the app tries the next one. The chat log is saved to the database so your history follows you across devices. The emergency keyword check runs 100% on your phone, so it works even with slow internet.</p>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- 3 -->
+<!-- ============================================================ -->
+<h2>3. Breathing Test</h2>
+<div class="section">
+
+<h3>How it works</h3>
+<p>You tap "Start." A circle on the screen begins to grow — that's your cue to inhale for 4 seconds. It pauses — hold your breath for 4 seconds. Then it shrinks — exhale for 6 seconds. A voice tells you what to do in Arabic at each step. Three different musical tones play for each phase: one for inhale, one for hold, one for exhale — so you can do the exercise with your eyes closed if you want. After 3 full cycles, you tap how each round felt — easy, medium, or hard. The app gives you a score from 0 to 10 and shows a green (normal), orange (moderate), or red (difficulty) result. You can then send your breathing results into the symptom checker for more context.</p>
+
+<h3>Why this way</h3>
+<p>The 4-4-6 pattern is a clinically proven breathing technique for reducing anxiety and stress. Instead of using pre-recorded audio files (which take time to download), the tones are generated live using your browser's audio system — they start instantly and the file size stays tiny. The voice instructions use your browser's built-in speech system, not a server — so no internet is needed. Most breathing apps require a download or don't adapt to how you felt; this one scores you and connects to the triage for a fuller picture.</p>
+
+<h3>Behind the scenes</h3>
+<p>Everything happens in your browser — no server involved. The growing and shrinking circle is done with CSS animations. The tones are generated by the Web Audio API: 528 Hz for inhale, 396 Hz for hold, 432 Hz for exhale. The voice uses the Web Speech API. After 3 cycles, the app adds up your difficulty ratings (hard = 3 points, medium = 2, easy = 1) and maps the total to a 0-10 score. The result is saved in the app's memory and can be passed to the triage system when you tap "Continue to symptom check."</p>
+<p><span class="strong">What makes it solid:</span> No internet needed — works in airplane mode. The animation runs at 60 frames per second even on basic phones because it uses CSS transforms, not JavaScript. There's a mute button if you're in a quiet place. The voice and tones are separate, so you can turn one off without losing the other. If you close the app and come back, your breathing score is still there in the current session.</p>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- 4 -->
+<!-- ============================================================ -->
+<h2>4. Medication Reminders</h2>
+<div class="section">
+
+<h3>How it works</h3>
+<p>You add a medication by typing its name, dose (like "500mg"), and how many times a day you take it. The app automatically spreads the doses evenly across your waking hours. You can adjust the times if you want. When it's time to take a dose, you tap a checkbox to confirm. A progress bar shows how much of today's schedule you've completed. A streak counter tracks how many days in a row you've stayed on track. Even if you close the browser completely, your phone receives a push notification — once 5 minutes before the dose (so you can prepare), again at the exact time, and once more 5 minutes later if you haven't confirmed yet.</p>
+
+<h3>Why this way</h3>
+<p>Most medication apps only notify you at the dose time — if you're busy, you miss it. Three notifications (before, at, after) give you multiple chances. The server runs a background check every minute — this is more reliable than browser-based timers, which pause when your laptop goes to sleep or your phone closes the tab. Using push notifications through Firebase means the message goes directly to your phone's notification center, just like WhatsApp or Instagram — you don't need to keep the app open.</p>
+
+<h3>Behind the scenes</h3>
+<p>When you add a medication, your browser sends it to the server, which saves it in the <span class="em">medications</span> table along with its dose times in the <span class="em">medication_doses</span> table. A background job on the server runs every minute of every day. It checks every user's local time (based on the timezone you set when logging in). For each dose time, it has three windows: 5 minutes before, exactly at, and 5 minutes after. If you haven't confirmed the dose (tracked in the <span class="em">medication_log</span> table) and the time matches a window, it sends a notification via Firebase Cloud Messaging. It also logs what it sent in the <span class="em">notification_log</span> table to avoid sending duplicates.</p>
+<p><span class="strong">What makes it solid:</span> The cron job runs every 60 seconds — it never sleeps, never pauses. Your timezone is saved at login, so a user in Cairo and a user in New York both get their reminders at the right local time. The notification_log prevents double-sending — even if the server hiccups and checks twice in the same minute. Stale FCM tokens (from users who reinstalled the app) are cleaned up automatically. You can have up to 10 doses per medication, and they auto-distribute evenly from 6 AM to 10 PM.</p>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- 5 -->
+<!-- ============================================================ -->
+<h2>5. AI Nutrition Advisor</h2>
+<div class="section">
+
+<h3>How it works</h3>
+<p>You tap one or more symptom chips that describe how you feel — nausea, headache, fatigue, stomach pain, sore throat, and 7 others. Or you can type your own description. The AI then looks at your age, BMI, current medications, any breathing test you've taken, and your recent triage sessions — and creates a personalized nutrition plan just for you. The plan has 4 sections: foods you should eat, drinks that help, foods to avoid, and lifestyle tips. If any of your medications conflict with certain foods, it warns you. You can chat back to change the plan (like "add salmon" or "remove bananas") and save it to your history or export it.</p>
+
+<h3>Why this way</h3>
+<p>Most nutrition websites give everyone the same generic advice — "eat more vegetables." This AI tailors recommendations to your actual health situation. The drug-food interaction check is a safety feature most apps don't have (for example, you shouldn't eat grapefruit with certain heart medications). The follow-up chat lets you tweak the plan conversationally instead of starting from scratch. The AI uses a model (Qwen 3 32B) that was specifically trained for strong Arabic understanding.</p>
+
+<h3>Behind the scenes</h3>
+<p>When you tap "Get Recommendations," your browser collects your health data (BMI from the calculator, medication list from the reminders, breathing score if available, any recent triage results) and sends it all to Groq's AI along with your selected symptoms. The AI returns a structured plan. The same multi-key fallback system used in triage applies here — if one API key fails, another takes over. If the AI is completely unreachable, the app falls back to pre-written recommendations for 30+ common conditions. The plan can be saved to the <span class="em">sessions</span> table with type "nutrition."</p>
+<p><span class="strong">What makes it solid:</span> Same multi-key rotation as triage for zero downtime. Hardcoded fallback data for 30+ common conditions ensures you never get an error — even if the internet is down briefly. The AI prompt includes real user data (actual meds, real BMI) so recommendations are never generic. Follow-up requests maintain context of the original plan so modifications are coherent. The health context bar at the top of the screen shows you what data the AI is using, so nothing is hidden.</p>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- 6 -->
+<!-- ============================================================ -->
+<h2>6. Medical Test Analyzer</h2>
+<div class="section">
+
+<h3>How it works</h3>
+<p>You snap a photo of your lab results with your phone's camera, or upload a PDF of your medical report. The app reads the numbers from the image, identifies what each value measures, and compares it to normal ranges. It then explains each result in plain Arabic — what's normal, what's abnormal, and what that means for your health. It also gives medical advice cards with practical recommendations. You can save the analysis to your history or download a PDF copy.</p>
+
+<h3>Why this way</h3>
+<p>Most people get lab reports with confusing numbers and abbreviations. Instead of Googling each value individually — and getting unreliable information from random websites — the AI analyzes everything together like a doctor would. You don't have to type anything; just take a photo. PDFs are handled on your device (using PDF.js) so your private medical data never gets uploaded to a server for conversion — the extraction happens in your browser, then only the text goes to the AI.</p>
+
+<h3>Behind the scenes</h3>
+<p>When you select a photo, your browser reads it as a data URL (a base64 string). It sends this image to Groq's AI with a prompt asking it to extract the test values. The AI returns a structured list of value names, numbers, units, and reference ranges. Then a second AI request analyzes these values and produces the Arabic explanation and advice cards. If the file is a PDF, your browser converts the first page to an image using PDF.js, then follows the same path. The entire analysis is saved to the <span class="em">sessions</span> table with type "medical_test."</p>
+<p><span class="strong">What makes it solid:</span> Your medical data stays private — PDFs are rendered to images entirely in your browser. The AI has special JSON repair logic: if the AI returns messy JSON (a common AI problem), the app fixes it automatically instead of crashing. Multiple API keys provide backup if the primary AI is busy. The image preview shows you exactly what was captured so you can retake a blurry photo before sending. Results include the detected test name at the top so you can verify it read the correct report.</p>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- 7 -->
+<!-- ============================================================ -->
+<h2>7. BMI Calculator</h2>
+<div class="section">
+
+<h3>How it works</h3>
+<p>You enter your height (in centimeters), weight (in kilograms), age, and gender. Tap "Calculate." The number animates from zero up to your BMI value. A visual gauge with a pointer moves to show where you land on the scale. The app tells you your category — underweight, normal, overweight, or obese — and shows specific health tips written in Arabic based on both your age and gender.</p>
+
+<h3>Why this way</h3>
+<p>Many BMI calculators send your measurements to a server for processing. This one calculates everything instantly on your phone — there's zero waiting and your data stays private. The animated counter and visual gauge make the result easier to understand than a plain number. The tips are tailored to your age and gender, not generic "eat better" advice. The result is also saved and shared with the Nutrition Advisor, so the AI already knows your BMI when you ask for food recommendations.</p>
+
+<h3>Behind the scenes</h3>
+<p>The calculation happens in your browser with a simple formula: weight divided by (height in meters squared). That's it — no server needed. The animated counter uses JavaScript's requestAnimationFrame for smooth counting. The gauge pointer uses CSS positioning based on where your BMI falls on the 0-40 scale. After calculation, the result is saved to the app's memory (<span class="em">STATE</span>) and to localStorage so it survives a page refresh. The Nutrition Advisor reads this value when building your personalized food plan.</p>
+<p><span class="strong">What makes it solid:</span> Zero dependencies — no libraries, no API calls, no server. Works completely offline. The gauge is driven entirely by CSS (no canvas or JavaScript drawing needed), so it renders perfectly on any screen size. The disclaimer at the bottom reminds users that BMI is just one measure of health, not a complete diagnosis. The tips are stored as plain arrays with gender and age conditions, easy to maintain and update.</p>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- 8 -->
+<!-- ============================================================ -->
+<h2>8. History Log</h2>
+<div class="section">
+
+<h3>How it works</h3>
+<p>Every time you use the symptom checker, get nutrition advice, or analyze a medical test, it's automatically saved in your history. You can filter by type — show only triage sessions, only nutrition plans, or only test analyses. Tap any entry to open a detailed view that shows the full conversation, the AI's diagnosis or recommendations, and the date it happened. You can copy the report or delete the entry.</p>
+
+<h3>Why this way</h3>
+<p>Your health history is useful for doctor visits and tracking progress over time. Saving to the server means your history follows you across devices — switch from phone to laptop, and it's all there. Filtering by type keeps things organized as you accumulate more entries. The full detail view includes the original AI response, which is more useful than just a title — you can show your doctor exactly what the AI recommended.</p>
+
+<h3>Behind the scenes</h3>
+<p>Every time you complete a triage, nutrition plan, or test analysis, your browser sends the session data to the server's <span class="em">POST /api/sessions</span> endpoint. The server saves it to the <span class="em">sessions</span> table with your username, the type ("triage," "nutrition," or "medical_test"), the full result as JSON, and a timestamp. When you open the History screen, your browser fetches all your sessions from <span class="em">GET /api/sessions</span> and displays them sorted by date (newest first). The filter simply hides sessions that don't match the selected type without making another server request.</p>
+<p><span class="strong">What makes it solid:</span> Sessions are fetched once on login and cached in memory — switching between History and other tabs is instant, no reloading. Deleting a session sends a delete request to the server and removes it from the local list without refetching everything. The session result is safely parsed: if it was stored as a JSON string, it's parsed; if already an object, it's used directly — no crashes from format mismatches. Only the authenticated user can see or delete their own sessions (enforced by the JWT middleware).</p>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- 9 -->
+<!-- ============================================================ -->
+<h2>9. Pharmacist WhatsApp Integration</h2>
+<div class="section">
+
+<h3>How it works</h3>
+<p>You save your pharmacy's phone number once. Then you have two options. "Quick Question" opens WhatsApp with a blank message so you can type anything to your pharmacist. "Medical Report" auto-generates a formatted summary of your current medications, your latest triage diagnosis, your breathing score, and your nutrition plan — then opens WhatsApp with that message ready to send. You see a preview before it goes out so you can check the information.</p>
+
+<h3>Why this way</h3>
+<p>Most health apps don't connect you with a real pharmacist at all. Instead of building a custom messaging system (which would need servers, databases, and a whole chat interface), this uses WhatsApp's existing infrastructure — literally billions of people already have it installed. The auto-generated report saves you from manually typing your medication list and latest symptoms. You get professional advice without leaving the app. The preview prevents embarrassing mistakes or outdated information from being sent.</p>
+
+<h3>Behind the scenes</h3>
+<p>Your browser constructs a WhatsApp URL using the <span class="em">wa.me</span> format: <span class="em">https://wa.me/{phone}?text={message}</span>. The phone number is cleaned (spaces, dashes, and plus signs removed) and the message is URL-encoded. For the quick question, the message is whatever you typed. For the medical report, the app calls <span class="em">buildPharmReport()</span>, which reads your profile data, medication list, latest triage session, and breathing result from the app's memory and formats them into a readable message. Then it opens that URL in a new tab, which launches WhatsApp. The phone number is stored in localStorage — never sent to the server.</p>
+<p><span class="strong">What makes it solid:</span> Your pharmacy's number stays on your device (localStorage), not on any server — your privacy is protected. The report builder pulls live data from the current app state, so the information is always up to date. If you haven't done a triage yet, the app shows a message saying "No session available" instead of sending an empty report. The URL format (wa.me) works on both mobile (opens WhatsApp app) and desktop (opens WhatsApp Web). No API keys, no integration costs, no maintenance.</p>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- 10 -->
+<!-- ============================================================ -->
+<h2>10. Mentor/Mentee System</h2>
+<div class="section">
+
+<h3>How it works</h3>
+<p>You add a family member or friend as a mentor by typing their username. Once they're added, they can see your triage sessions, your medications and whether you've taken them, your latest nutrition plan, and send you messages. You can reply back. The mentor sees a 4-tab view: Sessions (with notes they can add), Medications (they can mark doses as taken or add new meds), Nutrition (your latest plan), and Chat (message history). When a mentor sends a message, you get a push notification on your phone.</p>
+
+<h3>Why this way</h3>
+<p>Most health apps are single-user only — if a caregiver wants to help, they need your password. This system gives controlled access without sharing your login. You stay in control: you can remove a mentor anytime. The 4-tab view gives caregivers exactly what they need — a parent checking if their child took medication, or a caregiver monitoring an elderly relative. Push notifications mean the mentee sees the message immediately without refreshing the page.</p>
+
+<h3>Behind the scenes</h3>
+<p>When you add a mentor, your browser sends the mentor's username to the server, which inserts a row in the <span class="em">mentors</span> table linking your username to theirs. When a mentor views your data, the server checks that the relationship exists before sending any information — if there's no link, access is denied. Messages go into the <span class="em">mentor_messages</span> table with a role ("mentor" or "mentee") so both sides can see the full conversation. When a message is sent, the server also sends an FCM push notification to the recipient.</p>
+<p><span class="strong">What makes it solid:</span> Every single mentor action is authorized by the server — no snooping possible. If you remove a mentor, all their access stops immediately (next server check will find no relationship). Push notifications are sent server-side on every message, so neither side needs to keep the app open. The mentee's data is displayed read-only for sessions and nutrition (they can't change it), but medications are manageable (they can mark doses) — this is intentional for caregiving scenarios. Add/remove is instant with no approval workflow getting in the way of urgent situations.</p>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- 11 -->
+<!-- ============================================================ -->
+<h2>11. Push Notifications</h2>
+<div class="section">
+
+<h3>How it works</h3>
+<p>When you first log in, the app asks permission to send notifications. If you allow it, your phone gets registered with Firebase (Google's notification service). After that, a background service on the server checks every minute whether any of your medications are due. If they are, it sends a push notification directly to your phone — even if your browser is closed. You get three types: a reminder 5 minutes before the dose, an alert at the exact dose time, and a follow-up 5 minutes later if you haven't confirmed.</p>
+
+<h3>Why this way</h3>
+<p>Browser-based notifications only work while the tab is open. Push notifications via Firebase work even when the app is closed, the phone is locked, or you're using other apps. The server runs the check every minute using a cron job — this is much more reliable than JavaScript timers, which browsers pause when tabs are in the background. Three notification windows per dose maximize the chance you'll actually take your medication.</p>
+
+<h3>Behind the scenes</h3>
+<p>When you grant permission, your browser gets a unique FCM token from Firebase. It sends this token to the server via <span class="em">POST /api/notifications/store-token</span>, and the server saves it in your user record. Meanwhile, the server runs a cron job (set up with <span class="em">node-cron</span>) that fires every minute. It queries all users' medications and dose times, adjusts for each user's timezone offset, and checks if any dose falls within a notification window. If a dose qualifies and hasn't been notified yet (checked against the <span class="em">notification_log</span> table), it sends the push via Firebase Admin SDK and logs the notification to prevent duplicates.</p>
+<p><span class="strong">What makes it solid:</span> The <span class="em">notification_log</span> table tracks every notification sent — username, medication, dose, time, and type. If the cron job runs twice (e.g., server restart), no duplicate notifications go out. Stale FCM tokens (from users who uninstalled the app) are caught and cleaned up. The cron runs every 60 seconds 24/7 — it never sleeps. Timezone offsets are stored per-user at login, so a user in any country gets notifications at their correct local time. The Firebase Admin SDK is initialized with a service account (not a simple API key), giving it the highest reliability tier.</p>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- 12 -->
+<!-- ============================================================ -->
+<h2>12. UI &amp; Theme</h2>
+<div class="section">
+
+<h3>How it works</h3>
+<p>The entire app is in Arabic with right-to-left text, using a clean readable font called Cairo. In the top corner, there's a moon/sun icon — tap it to switch between light mode and dark mode instantly. On your phone, you can swipe left and right to move between screens (Home, Medications, History, etc.). On a computer, you can use the arrow keys. When you first open the app, a welcome animation greets you with words appearing one by one. Emergency numbers (123 for ambulance, 16000 for medical emergency) appear at the bottom of every screen.</p>
+
+<h3>Why this way</h3>
+<p>Instead of building two separate stylesheets (one for light, one for dark), the app uses CSS variables — one line of code toggles the theme and every color on every screen changes instantly. Swipe and keyboard navigation mean you never have to aim for tiny buttons on crowded screens. Cairo font was chosen because it's widely considered one of the most readable Arabic fonts on screens. The emergency numbers in the footer mean they're always one glance away, even when you're in the middle of a triage.</p>
+
+<h3>Behind the scenes</h3>
+<p>The app defines about 60 color and spacing variables in CSS using <span class="em">:root</span> for light mode and <span class="em">body.dark</span> for dark mode. When you tap the theme button, JavaScript toggles the "dark" class on the body, and every element using those variables updates automatically — no reloading, no flashing. The navigation system keeps track of which screen is active and hides/shows elements accordingly. Swipe detection measures the horizontal distance of your touch; if it's more than 50 pixels, the app switches tabs. The welcome animation uses staggered CSS transitions on each word, revealing them 250ms apart.</p>
+<p><span class="strong">What makes it solid:</span> 60+ CSS variables mean every color, shadow, border, and spacing is defined once and reused everywhere — consistent design with zero duplication. The dark theme isn't a simple color invert; it's carefully tuned for readability with proper contrast ratios. Your theme preference is saved to localStorage, so it sticks between sessions. Navigation state tracks where you left off. Swipe works on any touch device — phone, tablet, touch laptop. The animation doesn't block anything; you can start using the app immediately while it plays. The app is responsive: it works on screens from 320px (small phones) to 1920px (desktop monitors).</p>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- APPENDIX A -->
+<!-- ============================================================ -->
+<h2>Appendix A: Behind the Scenes — The Database</h2>
+<div class="section">
+
+<p>The app uses a system called SQLite (a lightweight database that lives in a single file on the server). It has <span class="em">9 tables</span>, each storing a specific type of information:</p>
+
+<table>
+  <tr><th>Table</th><th>What it stores</th></tr>
+  <tr><td><span class="em">users</span></td><td>Your login info (scrambled password), name, age, gender, medical history, timezone, and FCM push notification token</td></tr>
+  <tr><td><span class="em">sessions</span></td><td>Every triage, nutrition plan, and test analysis you've done — the full results and when it happened</td></tr>
+  <tr><td><span class="em">medications</span></td><td>Your medication names, doses, forms (pill/syrup/etc.), icons, colors, and notes</td></tr>
+  <tr><td><span class="em">medication_doses</span></td><td>The specific times each medication should be taken (linked to the medication above)</td></tr>
+  <tr><td><span class="em">medication_log</span></td><td>Which doses you've actually taken and when — this is what powers the progress bar and streak counter</td></tr>
+  <tr><td><span class="em">notification_log</span></td><td>Every push notification that was sent — prevents sending the same reminder twice</td></tr>
+  <tr><td><span class="em">mentors</span></td><td>Who added whom as a mentor — creates the connection between accounts</td></tr>
+  <tr><td><span class="em">mentor_notes</span></td><td>Notes that mentors write on your triage sessions</td></tr>
+  <tr><td><span class="em">mentor_messages</span></td><td>The chat history between mentors and mentees</td></tr>
+</table>
+
+<p>Every table that belongs to a user is linked by their username — so when you log in, the server only fetches data that belongs to you. This is enforced at the query level, not just in the frontend, so no one can see someone else's data even if they try to guess a URL.</p>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- APPENDIX B -->
+<!-- ============================================================ -->
+<h2>Appendix B: Behind the Scenes — Project Layout</h2>
+<div class="section">
+
+<p>The app has two parts that work together:</p>
+
+<h3>The Frontend (what you see)</h3>
+<p>This is a single HTML file called <span class="em">tabibak.html</span> — about 10,000 lines. It contains all the CSS (for styling, themes, animations) and all the JavaScript (for talking to the server, running the breathing test, handling file uploads, etc.). It's one file on purpose: deployment is as simple as uploading one file, and there's nothing to compile or build.</p>
+
+<h3>The Backend (the brain)</h3>
+<p>This is a Node.js server (Express) that handles everything the frontend can't do alone:</p>
+<ul>
+  <li><strong>index.js</strong> — The main server, starts everything up on port 3000</li>
+  <li><strong>auth.js</strong> — Handles JWT ticket creation and verification</li>
+  <li><strong>db.js</strong> — Connects to the database and creates the 9 tables</li>
+  <li><strong>scheduler.js</strong> — The cron job that runs every minute for medication reminders</li>
+  <li><strong>routes/auth.js</strong> — Login, registration, Google sign-in, profile updates</li>
+  <li><strong>routes/medications.js</strong> — Saving, listing, and deleting medications</li>
+  <li><strong>routes/sessions.js</strong> — Saving and loading triage/nutrition/test history</li>
+  <li><strong>routes/notifications.js</strong> — Storing FCM tokens</li>
+  <li><strong>routes/mentors.js</strong> — Mentor/mentee relationships, data access, and chat</li>
+</ul>
+
+<h3>How they communicate</h3>
+<p>The frontend talks to the backend through URLs called API endpoints (about 30 of them). When you save a medication, your browser sends a <span class="em">POST</span> request to <span class="em">/api/medications</span> with the medication details. The server saves it to the database and sends back a confirmation. Every request includes your JWT ticket so the server knows it's you. The backend also uses Socket.io to push live updates — like when a mentor sends you a message, the chat updates without refreshing.</p>
+
+</div>
+
+<div class="footer">
+  Tabibak — Features Explained Simply &bull; June 2026
+</div>
+
+</body>
+</html>
