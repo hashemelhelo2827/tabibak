@@ -253,6 +253,13 @@
       font-size: 1.6rem;
       font-weight: 800;
       color: var(--primary);
+      cursor: pointer;
+      user-select: none;
+      transition: opacity var(--speed);
+    }
+
+    .header-brand:hover {
+      opacity: 0.85;
     }
 
     .header-brand .logo-icon {
@@ -4540,9 +4547,6 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
           <button class="btn btn-secondary" id="foodSaveBtn" style="flex:1;">
             <i class="ti ti-device-floppy"></i> حفظ في السجل
           </button>
-          <button class="btn btn-secondary" id="foodPdfBtn" style="flex:1;">
-            <i class="ti ti-file-text"></i> PDF
-          </button>
         </div>
       </div>
 
@@ -5908,6 +5912,13 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
     document.getElementById('accountNavBtn').addEventListener('click', () => {
       showTab('profile');
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    });
+    document.querySelector('.header-brand').addEventListener('click', () => {
+      if (STATE.triageSession.chatLog.length > 0 && !STATE.triageSession.result) {
+        showTab('chat');
+      } else {
+        showTab('landing');
+      }
     });
     /* ================================================================
        MENTOR MODULE
@@ -8453,62 +8464,7 @@ ${dislikedList.length > 0 ? dislikedList.join('، ') : 'لا يوجد'}
       setTimeout(() => document.getElementById('foodSaveBtn').innerHTML = '<i class="ti ti-device-floppy"></i> حفظ في السجل', 3000);
     });
 
-    document.getElementById('foodPdfBtn').addEventListener('click', exportFoodPDF);
 
-    function exportFoodPDF() {
-      const data = STATE.food.currentData;
-      if (!data) return;
-      const user = STATE.currentUser;
-      const date = new Date().toLocaleDateString('ar-EG', { day: '2-digit', month: 'long', year: 'numeric' });
-      const time = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-
-      const cardsHtml = data.cards.map(card => {
-        const items = card.items.map(item => {
-          const name = typeof item === 'object' ? item.name : item;
-          const reason = typeof item === 'object' ? item.reason : '';
-          return `<li><strong>${name}</strong>${reason ? `<br><small>${reason}</small>` : ''}</li>`;
-        }).join('');
-        return `<div style="margin-bottom:1.5rem;page-break-inside:avoid;">
-          <h3 style="color:#2b6cb0;margin-bottom:0.5rem;font-size:1.1rem;">${card.icon || ''} ${card.title}</h3>
-          <ul style="margin:0;padding-right:1.5rem;">${items}</ul>
-        </div>`;
-      }).join('');
-
-      const chatHtml = (STATE.food.chatLog || []).map(m =>
-        `<p style="margin:0.3rem 0;padding:0.3rem 0.6rem;background:${m.role === 'user' ? '#e8f0fe' : '#f5f5f5'};border-radius:6px;"><strong>${m.role === 'user' ? 'المستخدم' : 'المساعد'}:</strong> ${m.text}</p>`
-      ).join('');
-
-      const win = window.open('', '_blank');
-      win.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير التوجيه الغذائي</title>
-        <style>
-          @page { margin: 1.5cm; }
-          body { font-family: 'Cairo', Arial, sans-serif; color: #1a1a2e; line-height: 1.7; max-width: 700px; margin: auto; padding: 20px; }
-          h1 { color: #2b6cb0; border-bottom: 2px solid #2b6cb0; padding-bottom: 8px; font-size: 22px; }
-          h2 { color: #1e4e8c; font-size: 16px; margin-top: 1rem; }
-          .meta { color: #666; font-size: 13px; margin-bottom: 1.5rem; }
-          .analysis { background: #f0f7ff; padding: 12px; border-radius: 8px; margin-bottom: 1.5rem; }
-          .warnings { background: #fff3cd; padding: 12px; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #ffc107; }
-          .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-align: center; }
-          ul { margin: 0.3rem 0; padding-right: 1.5rem; }
-          li { margin-bottom: 0.4rem; }
-          small { color: #666; font-size: 12px; }
-        </style></head><body>
-        <h1>🍽️ تقرير التوجيه الغذائي</h1>
-        <div class="meta">
-          <p>التاريخ: ${date} ${time}</p>
-          ${user?.name ? `<p>المريض: ${user.name}</p>` : ''}
-          ${data.badge ? `<p>الخطة: ${data.badge}</p>` : ''}
-        </div>
-        ${data.analysis ? `<div class="analysis"><strong>التحليل السريري:</strong><br>${data.analysis}</div>` : ''}
-        ${data.drugWarnings && data.drugWarnings.length > 0 && !data.drugWarnings.every(w => w.includes('لا توجد')) ? `<div class="warnings"><strong>⚠️ تحذيرات دوائية:</strong><br>${data.drugWarnings.join('<br>')}</div>` : ''}
-        <h2>التوصيات الغذائية</h2>
-        ${cardsHtml}
-        ${chatHtml ? `<h2 style="margin-top:1.5rem;">💬 سجل التعديلات</h2>${chatHtml}` : ''}
-        <div class="footer">تم الإنشاء بواسطة طبيبك — الذكاء الاصطناعي المساعد للرعاية الصحية<br>هذا التقرير ليس تشخيصاً طبياً بديلاً عن استشارة الطبيب المختص.</div>
-        <script>window.print();window.close();<\/script>
-      </body></html>`);
-      win.document.close();
-    }
 
     // API key is set in STATE.food.apiKey — no user UI needed
 
@@ -9937,8 +9893,25 @@ ${pdfText}`;
         if (u.history) msg += `📋 *التاريخ المرضي:* ${u.history}\n`;
         msg += '\n';
       }
-      const sessions = STATE.sessions || [];
-      const lastSession = sessions.length > 0 ? parseSession(sessions[0]) : null;
+      
+      // Get the last triage session
+      let lastSession = null;
+      if (STATE.triageSession && STATE.triageSession.result) {
+        lastSession = {
+          date: new Date().toISOString(),
+          symptom: STATE.triageSession.symptom,
+          condition: STATE.triageSession.result.condition,
+          desc: STATE.triageSession.result.desc,
+          recs: STATE.triageSession.result.recs
+        };
+      } else {
+        const sessions = STATE.sessions || [];
+        const triageSessions = sessions.filter(s => s.type === 'triage');
+        if (triageSessions.length > 0) {
+          lastSession = parseSession(triageSessions[0]);
+        }
+      }
+
       if (lastSession) {
         const d = new Date(lastSession.date || lastSession.createdAt)
           .toLocaleDateString('ar-EG', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -9974,7 +9947,7 @@ ${pdfText}`;
       } else if (phoneInput && !phoneInput.value) {
         phoneInput.value = '+' + PHARMACY_PHONE_DEFAULT;
       }
-      const hasSession = STATE.sessions && STATE.sessions.length > 0;
+      const hasSession = (STATE.sessions && STATE.sessions.length > 0) || (STATE.triageSession && STATE.triageSession.result);
       const noReportEl = document.getElementById('pharmNoReport');
       const reportCard = document.getElementById('pharmReportCard');
       if (noReportEl && reportCard) {
@@ -10023,7 +9996,7 @@ ${pdfText}`;
     });
 
     document.getElementById('pharmReportBtn').addEventListener('click', () => {
-      const hasSession = STATE.sessions && STATE.sessions.length > 0;
+      const hasSession = (STATE.sessions && STATE.sessions.length > 0) || (STATE.triageSession && STATE.triageSession.result);
       if (!hasSession) {
         alert('لا يوجد تقرير فحص بعد. يرجى إكمال جلسة فحص أولاً.');
         return;
