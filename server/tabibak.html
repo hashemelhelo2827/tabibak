@@ -8501,14 +8501,41 @@ ${dislikedList.length > 0 ? dislikedList.join('، ') : 'لا يوجد'}
        ================================================================ */
 
     function cleanControlChars(str) {
-      return str.replace(/"([^"\\]*(?:\\.[^"\\]*)*)"/g, (match) => {
-        return match.replace(/[\x00-\x1f]/g, (c) => {
-          if (c === '\n') return '\\n';
-          if (c === '\r') return '\\r';
-          if (c === '\t') return '\\t';
-          return '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0');
-        });
-      });
+      let inString = false;
+      let escaped = false;
+      let result = '';
+      for (let i = 0; i < str.length; i++) {
+        const c = str[i];
+        if (escaped) {
+          result += c;
+          escaped = false;
+          continue;
+        }
+        if (c === '\\') {
+          result += c;
+          escaped = true;
+          continue;
+        }
+        if (c === '"') {
+          inString = !inString;
+          result += c;
+          continue;
+        }
+        if (inString) {
+          const code = c.charCodeAt(0);
+          if (code < 32) {
+            if (c === '\n') result += '\\n';
+            else if (c === '\r') result += '\\r';
+            else if (c === '\t') result += '\\t';
+            else {
+              result += '\\u' + code.toString(16).padStart(4, '0');
+            }
+            continue;
+          }
+        }
+        result += c;
+      }
+      return result;
     }
 
     function safeJsonParse(str) {
