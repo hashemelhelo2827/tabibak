@@ -7167,7 +7167,10 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
 - اسأل سؤالاً تشخيصياً واحداً فقط في كل مرة
 - اسأل عن أي شيء تحتاجه لتشخيص الحالة — أنت حر تماماً
 - لديك ${TRIAGE_MAX_QUESTIONS} أسئلة كحد أقصى. السؤال الحالي رقم ${step + 1}
-- أخرج سؤالاً واحداً فقط — لا تفكير، لا شرح، لا تحليل، لا markdown، فقط نص السؤال
+- أخرج سؤالاً واحداً فقط — لا تفكير، لا شرح، لا تحليل، لا markdown
+- بعد السؤال، يمكنك إضافة اقتراحات للإجابة بهذا التنسيق: ---اقتراحات: خيار1, خيار2, خيار3
+- مثال: هل الألم مستمر أم متقطع؟ ---اقتراحات: مستمر, متقطع, يأتي ويروح
+- إذا كانت الخيارات محددة ومناسبة أضف اقتراحات، وإلا اكتب السؤال فقط بدون اقتراحات
 
 إذا طلب المريض معرفة التشخيص أو النتيجة الآن بأي عبارة → أجب فقط: {"done": true}`
         }
@@ -7227,7 +7230,19 @@ c-5.708,0-10.798-2.287-14.546-6.011c-0.87-0.895-1.697-1.857-2.407-2.904c-2.262-3
             }
           } catch (_) {}
 
-          await showTypingThenAppend(cleanText, 600);
+          // Parse suggestions from format: "question ---اقتراحات: خيار1, خيار2"
+          let question = cleanText;
+          let suggestions = [];
+          const sugMatch = cleanText.match(/---اقتراحات:\s*(.+)/);
+          if (sugMatch) {
+            question = cleanText.replace(/---اقتراحات:.*$/, '').trim();
+            suggestions = sugMatch[1].split(',').map(s => s.trim()).filter(Boolean);
+          }
+
+          await showTypingThenAppend(question, 600);
+          if (suggestions.length > 0) {
+            showSuggestions(suggestions);
+          }
           return;
         } catch (e) { lastError = e; }
       }
