@@ -8171,8 +8171,7 @@ ${dislikedList.length > 0 ? `\n⚠️ الأطعمة التي يكرهها أو 
         renderFoodCards(data);
         if (STATE.currentUser) saveFoodSession();
       } catch (e) {
-        document.getElementById('foodErrorMsg').textContent = `خطأ: ${e.message}. جاري عرض التوصيات المدمجة.`;
-        document.getElementById('foodError').style.display = '';
+        console.warn('Food AI failed, using fallback:', e.message);
         await new Promise(r => setTimeout(r, 300));
         const fallback = FOOD_FALLBACK[mood] || FOOD_FALLBACK['default'];
         STATE.food.currentData = fallback;
@@ -8518,16 +8517,31 @@ ${dislikedList.length > 0 ? dislikedList.join('، ') : 'لا يوجد'}
         .replace(/\]\s*{/g, '],{')
         .replace(/}\s*\[/g, '},[')
         .replace(/,\s*]/g, ']')
-        .replace(/,\s*}/g, '}');
+        .replace(/,\s*}/g, '}')
+        .replace(/\b(NaN|Infinity|-Infinity)\b/g, '"$1"')
+        .replace(/:\s*,\s*/g, ':""')
+        .replace(/\[\s*,/g, '[')
+        .replace(/,\s*\]/g, ']')
+        .replace(/([{,])\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":');
       try { JSON.parse(fixed); return fixed; } catch (e) {}
 
-      let depth = 0, validEnd = -1;
-      for (let i = 0; i < str.length; i++) {
-        if (str[i] === '{') depth++;
-        if (str[i] === '}') { depth--; if (depth === 0) validEnd = i + 1; }
+      fixed = fixed
+        .replace(/'/g, '"')
+        .replace(/\\(?!["\\\/bfnrtu])/g, '\\\\');
+      try { JSON.parse(fixed); return fixed; } catch (e) {}
+
+      let depth = 0, validEnd = -1, started = false;
+      for (let i = 0; i < fixed.length; i++) {
+        if (fixed[i] === '{' || fixed[i] === '[') { depth++; started = true; }
+        if (fixed[i] === '}' || fixed[i] === ']') {
+          depth--;
+          if (started && depth === 0) validEnd = i + 1;
+        }
       }
       if (validEnd > 0) {
-        try { return JSON.parse(str.substring(0, validEnd)); } catch (e) {}
+        for (let end = validEnd; end > 0; end--) {
+          try { return JSON.parse(fixed.substring(0, end)); } catch (e) {}
+        }
       }
 
       throw new Error('لم يتمكن إصلاح JSON');
@@ -8588,7 +8602,7 @@ ${dislikedList.length > 0 ? dislikedList.join('، ') : 'لا يوجد'}
           const endIdx = clean.lastIndexOf(']');
           if (startIdx !== -1 && endIdx !== -1) clean = clean.substring(startIdx, endIdx + 1);
           STATE.medicalTest.lastModelUsed = model;
-          return safeJsonParse(clean);
+          return safeJsonParse(repairJSON(clean));
         } catch (e) { lastError = e; }
       }
       throw lastError || new Error('فشلت جميع محاولات الاستخراج');
@@ -8659,7 +8673,7 @@ ${valuesText}
       const endIdx = clean.lastIndexOf('}');
       if (startIdx !== -1 && endIdx !== -1) clean = clean.substring(startIdx, endIdx + 1);
       STATE.medicalTest.lastModelUsed = 'llama-3.3-70b-versatile';
-      return safeJsonParse(clean);
+      return safeJsonParse(repairJSON(clean));
     }
 
     async function getMedicalTestRecsFromAI(base64Image, apiKey) {
@@ -8740,7 +8754,7 @@ ${valuesText}
           const endIdx = clean.lastIndexOf('}');
           if (startIdx !== -1 && endIdx !== -1) clean = clean.substring(startIdx, endIdx + 1);
           STATE.medicalTest.lastModelUsed = model;
-          return safeJsonParse(clean);
+          return safeJsonParse(repairJSON(clean));
         } catch (e) { lastError = e; }
       }
       throw lastError || new Error('فشلت جميع المحاولات');
@@ -8797,7 +8811,7 @@ ${pdfText}`;
       const arrStart = extractClean.indexOf('[');
       const arrEnd = extractClean.lastIndexOf(']');
       if (arrStart !== -1 && arrEnd !== -1) extractClean = extractClean.substring(arrStart, arrEnd + 1);
-      const values = safeJsonParse(extractClean);
+      const values = safeJsonParse(repairJSON(extractClean));
       if (!Array.isArray(values)) throw new Error('فشل تنسيق البيانات المستخرجة');
 
       return await analyzeExtractedValues(values, apiKey);
