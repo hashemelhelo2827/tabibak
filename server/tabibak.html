@@ -8500,19 +8500,27 @@ ${dislikedList.length > 0 ? dislikedList.join('، ') : 'لا يوجد'}
        MEDICAL TEST ANALYZER
        ================================================================ */
 
-    function safeJsonParse(str) {
-      const cleaned = str.replace(/"([^"\\]*(?:\\.[^"\\]*)*)"/g, (match) => {
+    function cleanControlChars(str) {
+      return str.replace(/"([^"\\]*(?:\\.[^"\\]*)*)"/g, (match) => {
         return match.replace(/[\x00-\x1f]/g, (c) => {
+          if (c === '\n') return '\\n';
+          if (c === '\r') return '\\r';
+          if (c === '\t') return '\\t';
           return '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0');
         });
       });
+    }
+
+    function safeJsonParse(str) {
+      const cleaned = cleanControlChars(str);
       return JSON.parse(cleaned);
     }
 
     function repairJSON(str) {
-      try { JSON.parse(str); return str; } catch (e) {}
+      let cleanedStr = cleanControlChars(str);
+      try { JSON.parse(cleanedStr); return cleanedStr; } catch (e) {}
 
-      let fixed = str
+      let fixed = cleanedStr
         .replace(/}\s*{/g, '},{')
         .replace(/\]\s*{/g, '],{')
         .replace(/}\s*\[/g, '},[')
@@ -8540,7 +8548,7 @@ ${dislikedList.length > 0 ? dislikedList.join('، ') : 'لا يوجد'}
       }
       if (validEnd > 0) {
         for (let end = validEnd; end > 0; end--) {
-          try { return JSON.parse(fixed.substring(0, end)); } catch (e) {}
+          try { JSON.parse(fixed.substring(0, end)); return fixed.substring(0, end); } catch (e) {}
         }
       }
 
@@ -8568,9 +8576,9 @@ ${dislikedList.length > 0 ? dislikedList.join('، ') : 'لا يوجد'}
 - أخرج JSON array فقط، لا markdown ولا كلمات خارج الهيكل.`;
 
 
-      const fallbackModels = ['meta-llama/llama-4-scout-17b-16e-instruct'];
+      const fallbackModels = ['qwen/qwen3.6-27b'];
       let lastError;
-      for (const model of ['llama-3.2-90b-vision-preview', ...fallbackModels]) {
+      for (const model of ['meta-llama/llama-4-scout-17b-16e-instruct', ...fallbackModels]) {
         try {
           const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -8720,9 +8728,9 @@ ${valuesText}
     }
   ]
 }`;
-      const fallbackModels = ['meta-llama/llama-4-scout-17b-16e-instruct'];
+      const fallbackModels = ['qwen/qwen3.6-27b'];
       let lastError;
-      for (const model of ['llama-3.2-90b-vision-preview', ...fallbackModels]) {
+      for (const model of ['meta-llama/llama-4-scout-17b-16e-instruct', ...fallbackModels]) {
         try {
           const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -9009,6 +9017,12 @@ ${pdfText}`;
             medModelBadge.style.display = '';
           } else if (medModel.includes('llama-3.2')) {
             medModelBadge.textContent = '🔬 Llama 3.2 90B Vision';
+            medModelBadge.style.display = '';
+          } else if (medModel.includes('llama-4-scout')) {
+            medModelBadge.textContent = '🦙 Llama 4 Scout Vision';
+            medModelBadge.style.display = '';
+          } else if (medModel.includes('qwen3.6-27b')) {
+            medModelBadge.textContent = '🧠 Qwen 3.6 27B Vision';
             medModelBadge.style.display = '';
           } else {
             medModelBadge.style.display = 'none';
